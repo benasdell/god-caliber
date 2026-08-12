@@ -1,6 +1,7 @@
 // Inventory UI Manager with Grid, Slots, Dynamic Stats & RPG Modifiers Hover Tooltips
 import { sound } from './audio.js';
 import { WEAPON_BLUEPRINTS } from './weapon.js';
+import { SPECIAL_LEGENDARIES, ITEM_TEMPLATES } from './inventory.js';
 
 export class InventoryUI {
   constructor(inventoryManager, controls, player, weapon, melee) {
@@ -38,6 +39,19 @@ export class InventoryUI {
     this.activeTab = 'storage';
     this.selectedCraftCategory = 'all';
     this.selectedCraftBaseId = 'weapon_ar15';
+
+    if (this.player) {
+      try {
+        const saved = localStorage.getItem('god_caliber_learned_recipes');
+        if (saved) {
+          this.player.learnedRecipes = JSON.parse(saved) || [];
+        } else if (!this.player.learnedRecipes) {
+          this.player.learnedRecipes = [];
+        }
+      } catch (e) {
+        if (!this.player.learnedRecipes) this.player.learnedRecipes = [];
+      }
+    }
 
     this.initGridDOM();
     this.initDragListeners();
@@ -681,6 +695,49 @@ export class InventoryUI {
     }
   }
 
+  updateForgeControlsUI(bp = null) {
+    const selectedId = this.selectedCraftBaseId || 'weapon_ar15';
+    const isLegendary = selectedId.startsWith('legendary_');
+    const targetBaseId = isLegendary ? selectedId.replace('legendary_', '') : selectedId;
+
+    const titleEl = document.getElementById('craft-selected-title');
+    const selectRarityEl = document.getElementById('craft-rarity-select');
+    const forgeBtn = document.getElementById('craft-forge-btn');
+
+    if (isLegendary) {
+      const specName = SPECIAL_LEGENDARIES[targetBaseId] || (ITEM_TEMPLATES[targetBaseId] ? ITEM_TEMPLATES[targetBaseId].name : targetBaseId.toUpperCase());
+      if (titleEl) titleEl.textContent = `📜 ${specName.toUpperCase()} (LEGENDARY)`;
+      
+      if (selectRarityEl) {
+        selectRarityEl.innerHTML = `<option value="legendary">🟠 Legendary (30 Epic, 20 Legendary Dust)</option>`;
+        selectRarityEl.disabled = true;
+      }
+
+      if (forgeBtn) {
+        forgeBtn.textContent = 'CRAFT ITEM';
+      }
+    } else {
+      const template = ITEM_TEMPLATES[targetBaseId];
+      const icon = bp ? bp.icon : (template ? template.icon : '🔫');
+      const name = bp ? bp.name : (template ? template.name : 'COMBAT RIFLE');
+      if (titleEl) titleEl.textContent = `${icon} ${name.toUpperCase()}`;
+
+      if (selectRarityEl) {
+        selectRarityEl.disabled = false;
+        selectRarityEl.innerHTML = `
+          <option value="normal">⚪ Normal (15 Normal Dust)</option>
+          <option value="magic">🔵 Magic (25 Normal Dust)</option>
+          <option value="rare">🟡 Rare (15 Magic, 10 Normal Dust)</option>
+          <option value="epic">🟣 Epic (20 Rare, 10 Magic Dust)</option>
+        `;
+      }
+
+      if (forgeBtn) {
+        forgeBtn.textContent = 'FORGE ITEM';
+      }
+    }
+  }
+
   renderCraftableGrid() {
     const gridEl = document.getElementById('craftable-items-grid');
     if (!gridEl) return;
@@ -695,16 +752,35 @@ export class InventoryUI {
       { id: 'weapon_knife', name: 'Combat Knife', type: 'weapon', icon: '🗡️', cost: '15+ Normal Dust' },
       { id: 'item_helmet', name: 'Tactical Helmet', type: 'helmet', icon: '🪖', cost: '15+ Normal Dust' },
       { id: 'item_vest', name: 'Combat Vest', type: 'vest', icon: '🦺', cost: '15+ Normal Dust' },
-      { id: 'item_gloves', name: 'Tactical Gloves', type: 'gloves', icon: '🧤', cost: '15+ Normal Dust' },
-      { id: 'item_recipe', name: 'Legendary Recipe', type: 'recipe', icon: '📜', cost: 'Upgrade Slot Craft' },
+      { id: 'item_gloves', name: 'Tactical Gloves', type: 'gloves', icon: '🧤', cost: '15+ Normal Dust' }
     ];
+
+    // Append learned Legendary blueprints
+    const learned = this.player && Array.isArray(this.player.learnedRecipes) ? this.player.learnedRecipes : [];
+    learned.forEach(targetBaseId => {
+      const template = ITEM_TEMPLATES[targetBaseId];
+      if (!template) return;
+      const specName = SPECIAL_LEGENDARIES[targetBaseId] || `LEGENDARY ${template.name}`;
+      const itemType = (template.type === 'primary' || template.type === 'secondary') ? 'weapon' : template.type;
+      
+      blueprints.push({
+        id: `legendary_${targetBaseId}`,
+        name: specName,
+        type: itemType,
+        icon: template.icon,
+        isLegendary: true,
+        cost: '30 Epic, 20 Legendary Dust'
+      });
+    });
 
     const category = this.selectedCraftCategory;
     const filtered = blueprints.filter(b => category === 'all' || b.type === category);
 
     filtered.forEach(bp => {
       const card = document.createElement('div');
-      card.className = `craft-card ${bp.id === this.selectedCraftBaseId ? 'selected' : ''}`;
+      const isSelected = bp.id === this.selectedCraftBaseId;
+      const isLeg = bp.isLegendary ? 'is-legendary-card' : '';
+      card.className = `craft-card ${isLeg} ${isSelected ? 'selected' : ''}`;
       card.innerHTML = `
         <div class="craft-card-icon">${bp.icon}</div>
         <div class="craft-card-name">${bp.name}</div>
@@ -714,13 +790,14 @@ export class InventoryUI {
       card.addEventListener('click', (e) => {
         e.stopPropagation();
         this.selectedCraftBaseId = bp.id;
-        const titleEl = document.getElementById('craft-selected-title');
-        if (titleEl) titleEl.textContent = `${bp.icon} ${bp.name.toUpperCase()}`;
+        this.updateForgeControlsUI(bp);
         this.renderCraftableGrid();
       });
 
       gridEl.appendChild(card);
     });
+
+    this.updateForgeControlsUI();
   }
 
   autoEquipItem(item) {
@@ -944,11 +1021,10 @@ export class InventoryUI {
       }
       
       if (item.type === 'recipe') {
-        const costStr = "Cost: 40 Legendary 🟠, 25 Epic 🟣";
-        if (costEl) costEl.textContent = costStr;
+        if (costEl) costEl.textContent = "Right-click in Inventory to learn blueprint";
         if (btnEl) {
-          btnEl.textContent = "CRAFT LEGENDARY";
-          btnEl.disabled = false;
+          btnEl.textContent = "LEARN IN INVENTORY";
+          btnEl.disabled = true;
         }
       } else {
         const rarity = item.rarity;
@@ -971,7 +1047,7 @@ export class InventoryUI {
             btnEl.disabled = false;
           }
         } else {
-          if (costEl) costEl.textContent = "Max upgrade reached (Legendary requires recipes)";
+          if (costEl) costEl.textContent = "Max upgrade reached (Legendary items crafted via learned blueprints)";
           if (btnEl) {
             btnEl.textContent = "MAX UPGRADE";
             btnEl.disabled = true;
@@ -980,16 +1056,49 @@ export class InventoryUI {
       }
     } else {
       slotEl.classList.remove('has-item');
-      slotEl.innerHTML = `<span class="upgrade-placeholder-text">CLICK GRID ITEM/RECIPE TO PLACE</span>`;
+      slotEl.innerHTML = `<span class="upgrade-placeholder-text">PLACE ITEM HERE TO UPGRADE TIER</span>`;
       if (infoEl) infoEl.classList.add('hidden');
     }
   }
 
   craftForgeItem() {
-    const baseId = this.selectedCraftBaseId || 'weapon_ar15';
+    const selectedId = this.selectedCraftBaseId || 'weapon_ar15';
+    const isLegendaryCraft = selectedId.startsWith('legendary_');
+    const baseId = isLegendaryCraft ? selectedId.replace('legendary_', '') : selectedId;
+    const dust = this.inv.recycledDust;
+
+    if (isLegendaryCraft) {
+      if (dust.epic < 30 || dust.legendary < 20) {
+        if (window.gameInstance && window.gameInstance.ui) {
+          window.gameInstance.ui.addKillFeed("⚠️ CANNOT AFFORD: Requires 30 Epic & 20 Legendary Dust!");
+        }
+        return;
+      }
+
+      const newItem = this.inv.generateRandomItem(baseId, 'legendary');
+      const spot = this.inv.findEmptySpace(newItem);
+      if (!spot) {
+        if (window.gameInstance && window.gameInstance.ui) {
+          window.gameInstance.ui.addKillFeed("⚠️ NO STORAGE SPACE FOR CRAFTED ITEM!");
+        }
+        return;
+      }
+
+      dust.epic -= 30;
+      dust.legendary -= 20;
+      this.inv.addItem(newItem, spot.row, spot.col);
+      sound.playReload();
+
+      if (window.gameInstance && window.gameInstance.ui) {
+        window.gameInstance.ui.addKillFeed(`🔨 CRAFTED SPECIAL LEGENDARY: ${newItem.name}!`);
+      }
+      this.renderItems();
+      this.renderCraftableGrid();
+      return;
+    }
+
     const selectRarity = document.getElementById('craft-rarity-select');
     const targetRarity = selectRarity ? selectRarity.value : 'normal';
-    const dust = this.inv.recycledDust;
     let canAfford = true;
     let costText = "";
 
@@ -1049,93 +1158,60 @@ export class InventoryUI {
     if (!this.upgradeTargetItem) return;
 
     const item = this.upgradeTargetItem;
-    const dust = this.inv.recycledDust;
-
     if (item.type === 'recipe') {
-      if (dust.epic < 30 || dust.legendary < 20) {
-        if (window.gameInstance && window.gameInstance.ui) {
-          window.gameInstance.ui.addKillFeed("⚠️ NOT ENOUGH DUST TO CRAFT LEGENDARY!");
-        }
-        return;
-      }
-
-      this.inv.removeItem(item);
-      const targetBaseId = item.recipeTargetBaseId;
-      const newItem = this.inv.generateRandomItem(targetBaseId, 'legendary');
-      const spot = this.inv.findEmptySpace(newItem);
-
-      if (!spot) {
-        // Revert recipe back
-        const recipeSpot = this.inv.findEmptySpace(item);
-        if (recipeSpot) {
-          this.inv.addItem(item, recipeSpot.row, recipeSpot.col);
-        } else {
-          this.inv.items.push(item);
-        }
-        if (window.gameInstance && window.gameInstance.ui) {
-          window.gameInstance.ui.addKillFeed("⚠️ NO STORAGE SPACE FOR LEGENDARY ITEM!");
-        }
-        return;
-      }
-
-      dust.epic -= 30;
-      dust.legendary -= 20;
-      this.inv.addItem(newItem, spot.row, spot.col);
-      this.upgradeTargetItem = null;
-      sound.playReload();
-
       if (window.gameInstance && window.gameInstance.ui) {
-        window.gameInstance.ui.addKillFeed(`🔨 CRAFTED SPECIAL LEGENDARY: ${newItem.name}!`);
+        window.gameInstance.ui.addKillFeed("⚠️ Recipes must be learned by right-clicking them in Inventory storage!");
       }
-      this.renderItems();
-    } else {
-      let nextRarity = '';
-      let requiredRarityDust = '';
-      let cost = 0;
-
-      if (item.rarity === 'normal') {
-        nextRarity = 'magic';
-        requiredRarityDust = 'normal';
-        cost = 20;
-      } else if (item.rarity === 'magic') {
-        nextRarity = 'rare';
-        requiredRarityDust = 'magic';
-        cost = 20;
-      } else if (item.rarity === 'rare') {
-        nextRarity = 'epic';
-        requiredRarityDust = 'rare';
-        cost = 25;
-      } else {
-        return;
-      }
-
-      if (dust[requiredRarityDust] < cost) {
-        if (window.gameInstance && window.gameInstance.ui) {
-          window.gameInstance.ui.addKillFeed(`⚠️ NOT ENOUGH ${requiredRarityDust.toUpperCase()} DUST!`);
-        }
-        return;
-      }
-
-      dust[requiredRarityDust] -= cost;
-
-      const upgradedTemp = this.inv.generateRandomItem(item.baseId, nextRarity);
-      const oldName = item.name;
-      item.name = upgradedTemp.name;
-      item.color = upgradedTemp.color;
-      item.borderColor = upgradedTemp.borderColor;
-      item.rarity = upgradedTemp.rarity;
-      item.modifiers = upgradedTemp.modifiers;
-      item.modifiersList = upgradedTemp.modifiersList;
-
-      this.applyEquipmentStats();
-      sound.playReload();
-
-      if (window.gameInstance && window.gameInstance.ui) {
-        window.gameInstance.ui.addKillFeed(`⚡ UPGRADED ${oldName} TO ${item.name}!`);
-      }
-
-      this.updateUpgradeUI();
-      this.renderItems();
+      return;
     }
+
+    const dust = this.inv.recycledDust;
+    let nextRarity = '';
+    let requiredRarityDust = '';
+    let cost = 0;
+
+    if (item.rarity === 'normal') {
+      nextRarity = 'magic';
+      requiredRarityDust = 'normal';
+      cost = 20;
+    } else if (item.rarity === 'magic') {
+      nextRarity = 'rare';
+      requiredRarityDust = 'magic';
+      cost = 20;
+    } else if (item.rarity === 'rare') {
+      nextRarity = 'epic';
+      requiredRarityDust = 'rare';
+      cost = 25;
+    } else {
+      return;
+    }
+
+    if (dust[requiredRarityDust] < cost) {
+      if (window.gameInstance && window.gameInstance.ui) {
+        window.gameInstance.ui.addKillFeed(`⚠️ NOT ENOUGH ${requiredRarityDust.toUpperCase()} DUST!`);
+      }
+      return;
+    }
+
+    dust[requiredRarityDust] -= cost;
+
+    const upgradedTemp = this.inv.generateRandomItem(item.baseId, nextRarity);
+    const oldName = item.name;
+    item.name = upgradedTemp.name;
+    item.color = upgradedTemp.color;
+    item.borderColor = upgradedTemp.borderColor;
+    item.rarity = upgradedTemp.rarity;
+    item.modifiers = upgradedTemp.modifiers;
+    item.modifiersList = upgradedTemp.modifiersList;
+
+    this.applyEquipmentStats();
+    sound.playReload();
+
+    if (window.gameInstance && window.gameInstance.ui) {
+      window.gameInstance.ui.addKillFeed(`⚡ UPGRADED ${oldName} TO ${item.name}!`);
+    }
+
+    this.updateUpgradeUI();
+    this.renderItems();
   }
 }

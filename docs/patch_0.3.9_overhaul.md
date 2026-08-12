@@ -1,15 +1,15 @@
-# Sub-Patch 0.3.9, 0.3.9b, 0.3.9c, & 0.3.9d — "Inventory & Terrain Overhaul" Technical Specification
+# Sub-Patch 0.3.9, 0.3.9b, 0.3.9c, 0.3.9d, & 0.3.9e — "Inventory & Terrain Overhaul" Technical Specification
 
-> **Patch Name**: Sub-Patch 0.3.9d Hotfix (Full Gear Reset on Match Restart & Secondary Weapon Slot Auto-Equip)  
-> **Target Release**: Patch 0.3.9d  
-> **Focus**: Match Restart Gear Reset & Smart Secondary Weapon Slot Auto-Equip  
+> **Patch Name**: Sub-Patch 0.3.9e Hotfix (Right-Click Recipe Blueprint Unlocking & Dynamic Legendary Crafting)  
+> **Target Release**: Patch 0.3.9e  
+> **Focus**: Right-Click Inventory Recipe Unlocking & Crafting Bench Legendary Blueprint Integration  
 > **Date**: August 2026
 
 ---
 
 ## 1. Executive Summary
 
-Sub-Patch 0.3.9d delivers a hotfix for God-Caliber. It fixes equipment state retention across match restarts by explicitly resetting all 7 equipment slots (`head`, `torso`, `legs`, `gloves`, `primary`, `secondary`, `melee`) to null before equipping starting defaults (P-57 Pistol + Combat Knife). It also resolves weapon auto-equip logic so picking up a second weapon automatically equips into the `secondary` slot whenever `secondary` is empty, regardless of active slot.
+Sub-Patch 0.3.9e delivers a hotfix for God-Caliber. It refactors Recipe item behavior so learning a recipe by right-clicking it in the Inventory storage grid permanently unlocks the specific Special Legendary item (e.g., `⚡ VORTEX ASSAULT RIFLE`) as a craftable blueprint in the Crafting Bench. It also removes the obsolete `Legendary Recipe` item entry from the Crafting Bench grid and `RECIPES` category filter, and updates the action button to say `CRAFT ITEM` for Legendary blueprints.
 
 ---
 

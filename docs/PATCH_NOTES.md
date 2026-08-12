@@ -1,6 +1,6 @@
 # 📜 God-Caliber — Master Patch Notes & Release Changelog
 
-> **Complete Version History**: Patch 0.1.0 to Patch 0.3.9d (Hotfix)  
+> **Complete Version History**: Patch 0.1.0 to Patch 0.3.9e (Hotfix)  
 > **Engine**: Three.js (v0.170.0) + Vite (v5.4.0) + PeerJS WebRTC
 
 ---
@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [Patch 0.3 Series — Multiplayer, Vision & System Overhauls](#-patch-03-series--multiplayer-vision--system-overhauls)
+  - [Sub-Patch 0.3.9e — Hotfix: Recipe Blueprint Unlocking & Dynamic Legendary Crafting](#sub-patch-039e--hotfix-recipe-blueprint-unlocking--dynamic-legendary-crafting)
   - [Sub-Patch 0.3.9d — Hotfix: Match Restart Gear Reset & Secondary Weapon Auto-Equip](#sub-patch-039d--hotfix-match-restart-gear-reset--secondary-weapon-auto-equip)
   - [Sub-Patch 0.3.9c — Hotfix: KeyF Interaction, KeyE Inventory Toggle, Scrollbar Elimination & Dynamic Grid](#sub-patch-039c--hotfix-keyf-interaction-keye-inventory-toggle-scrollbar-elimination--dynamic-grid)
   - [Sub-Patch 0.3.9b — Hotfix: KeyE Toggle Fix, Crouch to KeyC, & 10 Structure Terrain Reset](#sub-patch-039b--hotfix-keye-toggle-fix-crouch-to-keyc--10-structure-terrain-reset)
@@ -31,6 +32,17 @@
 ---
 
 ## 🛡️ Patch 0.3 Series — Multiplayer, Vision & System Overhauls
+
+### Sub-Patch 0.3.9e — Hotfix: Recipe Blueprint Unlocking & Dynamic Legendary Crafting
+*Release Date: August 2026*
+
+* **Right-Click Recipe Blueprint Unlocking**:
+  - Right-clicking a Recipe item in the Inventory storage grid consumes the recipe and permanently unlocks the specific Special Legendary item (e.g. `VORTEX ASSAULT RIFLE`) as a craftable blueprint in the Crafting Bench. Persists across matches via `localStorage`.
+* **Crafting Bench Integration & Cleaning**:
+  - Dynamically appends unlocked Legendary blueprints to the Crafting Bench selection grid (`.is-legendary-card`).
+  - Removed obsolete `Legendary Recipe` item from the Crafting Bench grid and `RECIPES` category filter in `index.html`.
+* **Action Button Update**:
+  - Selecting an unlocked Legendary blueprint updates the forge panel action button to **`CRAFT ITEM`** (`30 Epic, 20 Legendary Dust`).
 
 ### Sub-Patch 0.3.9d — Hotfix: Match Restart Gear Reset & Secondary Weapon Auto-Equip
 *Release Date: August 2026*

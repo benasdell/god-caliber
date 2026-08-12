@@ -149,7 +149,7 @@ export class InventoryManager {
         borderColor: '#f97316',
         rarity: 'legendary',
         icon: '📜',
-        desc: `Place on Crafting Bench with dust to forge this unique Legendary.`,
+        desc: `Right-click in Inventory to learn blueprint for ${SPECIAL_LEGENDARIES[targetBase] || ITEM_TEMPLATES[targetBase].name}.`,
         modifiers: {},
         modifiersList: [],
         recipeTargetBaseId: targetBase

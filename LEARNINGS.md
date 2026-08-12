@@ -95,3 +95,12 @@
   When resetting player state for a new match round (`startBRMatch()`), never rely on re-initializing only default weapon slots. Explicitly clear all equipment slots (`head`, `torso`, `legs`, `gloves`, `primary`, `secondary`, `melee`) to `null` before populating starting gear. Otherwise, armor, boots, gloves, and secondary weapons equipped in previous rounds persist across match restarts.
 - **Sequential Weapon Slot Resolution for Auto-Equip**:
   When evaluating equipment target slots for non-melee weapons (`getEquipmentSlotForItem`), do NOT hardcode `'primary'`. Check if `primary` is empty (`null`); if occupied, check if `secondary` is empty (`null`). Only if both weapon slots are full should it fallback to the currently active weapon slot. This guarantees that picking up a second weapon automatically equips into `secondary` slot whenever `secondary` is unequipped.
+
+---
+
+## 10. Recipe Learning & Legendary Crafting Invariants (Sub-Patch 0.3.9e Hotfix)
+
+- **Inventory Right-Click Blueprint Unlocking**:
+  Recipe items must be learned directly within the player inventory via right-click interaction (`learnRecipe()`). Consuming the recipe item permanently appends the target base ID to `player.learnedRecipes` and persists state to `localStorage`.
+- **Dynamic Blueprint Grid Unlocking & Dedicated Action Button**:
+  Once a recipe is learned, dynamically append the specific Special Legendary item card (e.g. `⚡ VORTEX ASSAULT RIFLE`) to the Crafting Bench blueprint grid. Selecting a Legendary blueprint updates the forge action button to **`CRAFT ITEM`** with fixed dust costs (30 Epic, 20 Legendary Dust). Remove raw `Recipe` items from crafting grids and upgrade slots to eliminate ambiguous upgrade states.

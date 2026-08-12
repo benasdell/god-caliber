@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { sound } from './audio.js';
 
 const _tempStep = new THREE.Vector3();
+const _scratchRay = new THREE.Ray();
+const _scratchHitPoint = new THREE.Vector3();
+const _scratchCheckPoint = new THREE.Vector3();
 
 export class BulletManager {
   constructor(scene, worldOctree) {

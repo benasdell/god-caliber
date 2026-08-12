@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Octree } from 'three/examples/jsm/math/Octree.js';
 
 const _scratchV = new THREE.Vector3();
 const _scratchP = new THREE.Vector3();

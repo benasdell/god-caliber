@@ -1,5 +1,12 @@
 import * as THREE from 'three';
 
+const _scratchV = new THREE.Vector3();
+const _scratchP = new THREE.Vector3();
+const _scratchProj = new THREE.Vector3();
+const _scratchLadPos = new THREE.Vector3();
+const _scratchOutwardNormal = new THREE.Vector3();
+const _scratchPlayerRel = new THREE.Vector3();
+
 // Helper: Build a clean, right-angled triangular prism ramp geometry
 export function createTriangularRampGeometry(width, height, length) {
   const geom = new THREE.BufferGeometry();
@@ -406,14 +413,14 @@ export class TerrainManager {
 
     // 1. Check Ziplines (Cable segment projection + camera orientation alignment)
     for (const zip of this.ziplines) {
-      const v = new THREE.Vector3().subVectors(zip.end, zip.start);
-      const lenSq = v.lengthSq();
+      _scratchV.subVectors(zip.end, zip.start);
+      const lenSq = _scratchV.lengthSq();
       if (lenSq === 0) continue;
 
-      const p = new THREE.Vector3().subVectors(playerPos, zip.start);
-      const t = Math.max(0, Math.min(1, p.dot(v) / lenSq));
-      const projectedPoint = zip.start.clone().lerp(zip.end, t);
-      const distToCable = playerPos.distanceTo(projectedPoint);
+      _scratchP.subVectors(playerPos, zip.start);
+      const t = Math.max(0, Math.min(1, _scratchP.dot(_scratchV) / lenSq));
+      _scratchProj.copy(zip.start).lerp(zip.end, t);
+      const distToCable = playerPos.distanceTo(_scratchProj);
 
       if (distToCable < minDist) {
         minDist = distToCable;
@@ -440,14 +447,14 @@ export class TerrainManager {
 
     // 2. Check Ladders
     for (const lad of this.ladders) {
-      const ladPos = new THREE.Vector3(lad.x, playerPos.y, lad.z);
-      const dist = playerPos.distanceTo(ladPos);
+      _scratchLadPos.set(lad.x, playerPos.y, lad.z);
+      const dist = playerPos.distanceTo(_scratchLadPos);
       if (dist < 2.5 && playerPos.y >= lad.yStart - 0.5 && playerPos.y <= lad.yEnd + 1.2) {
         // If ladder is attached to a wall/pillar, verify player is in front of outward climbable face
         if (!lad.isFreestanding) {
-          const outwardNormal = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), lad.rotationY || 0);
-          const playerRel = playerPos.clone().sub(ladPos);
-          if (playerRel.dot(outwardNormal) < -0.2) continue; // Skip if player is behind/inside the wall
+          _scratchOutwardNormal.set(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), lad.rotationY || 0);
+          _scratchPlayerRel.subVectors(playerPos, _scratchLadPos);
+          if (_scratchPlayerRel.dot(_scratchOutwardNormal) < -0.2) continue; // Skip if player is behind/inside the wall
         }
 
         if (dist < minDist) {

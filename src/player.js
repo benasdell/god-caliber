@@ -470,6 +470,8 @@ export class Player {
 
   takeDamage(amount, hitY = null, attackerId = null, attackerName = null) {
     if (this.isDead) return;
+    const sanitizedAmount = Math.max(0, Math.min(Number(amount) || 0, 200));
+    if (sanitizedAmount <= 0) return;
 
     let isHeadshot = false;
     if (hitY !== null && typeof hitY === 'number') {
@@ -483,7 +485,7 @@ export class Player {
     if (attackerId) this.lastAttackerId = attackerId;
     if (attackerName) this.lastAttackerName = attackerName;
 
-    const baseDmg = isHeadshot ? amount * 1.5 : amount;
+    const baseDmg = isHeadshot ? sanitizedAmount * 1.5 : sanitizedAmount;
     const reducedAmount = baseDmg * (1 - this.damageReduction);
     this.hp = Math.max(0, this.hp - reducedAmount);
 

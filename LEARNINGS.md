@@ -43,3 +43,15 @@
 - **Scoreboard Data Telemetry Unification**:
   Never mix simulated dummy points loops with real multiplayer stats. Compute dynamic scoreboard rows by querying `window.gameInstance.player` for local stats, `network.peerPlayers` for human peers, and `targetManager.targets` for active AI bots.
 
+---
+
+## 5. Security & Performance Invariants (Sub-Patch 0.3.7 Bastion)
+
+- **Host RPC Validation & Rate Limiting**:
+  Never trust peer RPC packets implicitly. Host processes MUST validate incoming hit damage caps (`<= 200 HP`), verify ray distances (`<= 150m`), whitelist RPC types (`ALLOWED_TYPES`), and enforce per-peer sliding window rate limiting (max 60 pkts/sec).
+- **GPU Resource Memory Leak Prevention**:
+  `scene.remove(group)` leaves underlying `BufferGeometry` and `MeshStandardMaterial` instances in VRAM. Always traverse mesh groups and call `.dispose()` on unshared geometries and materials when switching weapons (`weapon.js`), despawning dead enemies (`targets.js`), or clearing ground loot (`world-items.js`). Use shared material caches (`WEAPON_MATERIAL_CACHE`) for procedural models.
+- **Zero Allocation Invariants in High-Frequency Loops**:
+  Instantiating `new THREE.Vector3()`, `new THREE.Ray()`, or creating new `AudioBuffer` float arrays inside `animate()`, `getClosestInteractable()`, `spawnBullet()`, or `playGunshot()` triggers garbage collection spikes. Preallocate static scratch variables at module scope.
+
+

@@ -143,16 +143,14 @@ export class BulletManager {
   }
 
   spawnBullet(startPos, direction, damage = 35, speed = 130, targetManager = null, uiManager = null) {
-    // We fetch current targets/ui manager directly if we need to run instant hitscan raycasting
     const actualTargetManager = targetManager || (window.gameInstance ? window.gameInstance.targetManager : null);
     const actualUiManager = uiManager || (window.gameInstance ? window.gameInstance.ui : null);
 
-    // 1. ALL PLAYER WEAPONS ARE INSTANT HITSCAN (Pistol, Shotgun, AR-15, Sniper)
-    const ray = new THREE.Ray(startPos, direction);
-    const envHit = this.worldOctree.rayIntersect(ray);
+    _scratchRay.set(startPos, direction);
+    const envHit = this.worldOctree.rayIntersect(_scratchRay);
 
     let hitDist = Infinity;
-    let hitPoint = new THREE.Vector3().copy(startPos).addScaledVector(direction, 120);
+    const hitPoint = _scratchHitPoint.copy(startPos).addScaledVector(direction, 120);
     let hitBot = null;
 
     if (envHit) {
@@ -163,16 +161,14 @@ export class BulletManager {
     const netManager = window.gameInstance?.network;
     let hitPeer = null;
 
-    // Check if we hit any bot capsule/sphere closer than the environment
     if (actualTargetManager) {
-      const checkPoint = new THREE.Vector3();
       for (const bot of actualTargetManager.targets) {
         if (bot.isDestroyed) continue;
-        if (ray.intersectSphere(bot.collider, checkPoint)) {
-          const dist = startPos.distanceTo(checkPoint);
+        if (_scratchRay.intersectSphere(bot.collider, _scratchCheckPoint)) {
+          const dist = startPos.distanceTo(_scratchCheckPoint);
           if (dist < hitDist) {
             hitDist = dist;
-            hitPoint.copy(checkPoint);
+            hitPoint.copy(_scratchCheckPoint);
             hitBot = bot;
             hitPeer = null;
           }
@@ -180,15 +176,13 @@ export class BulletManager {
       }
     }
 
-    // Check if we hit any remote WebRTC peer player closer than environment/bots
     if (netManager && netManager.peerPlayers) {
-      const checkPoint = new THREE.Vector3();
       netManager.peerPlayers.forEach((peer, peerId) => {
-        if (peer.hp > 0 && peer.boundingSphere && ray.intersectSphere(peer.boundingSphere, checkPoint)) {
-          const dist = startPos.distanceTo(checkPoint);
+        if (peer.hp > 0 && peer.boundingSphere && _scratchRay.intersectSphere(peer.boundingSphere, _scratchCheckPoint)) {
+          const dist = startPos.distanceTo(_scratchCheckPoint);
           if (dist < hitDist) {
             hitDist = dist;
-            hitPoint.copy(checkPoint);
+            hitPoint.copy(_scratchCheckPoint);
             hitBot = null;
             hitPeer = peer;
           }

@@ -25,6 +25,12 @@ export function sanitizeName(rawName) {
   return clean ? clean.substring(0, 16) : 'Player';
 }
 
+export function sanitizeRoomCode(rawCode) {
+  if (typeof rawCode !== 'string') return '';
+  const clean = rawCode.trim().toUpperCase();
+  return /^[A-Z0-9_-]{1,32}$/.test(clean) ? clean : '';
+}
+
 export function generateRoomCode(prefix = 'GC') {
   const CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   const randomBytes = new Uint8Array(4);
@@ -98,6 +104,7 @@ export class NetworkManager {
     this.peerPlayers = new Map();
     this.connections = new Map();
     this.peer = null;
+    this._peerRateLimits = new Map(); // Peer ID -> { count, windowStart }
     this.isConnected = false;
     this.isHost = false;
     this.roomId = null;
@@ -365,8 +372,15 @@ export class NetworkManager {
   joinLobby(roomCode, pin = '') {
     this.stopHosting();
 
+    const cleanRoomCode = sanitizeRoomCode(roomCode);
+    if (!cleanRoomCode) {
+      console.warn(`[NetworkManager] Invalid room code format: "${roomCode}"`);
+      this._setConnectionState(CONNECTION_STATES.FAILED, 'Invalid room code format');
+      return;
+    }
+
     this.isHost = false;
-    this.roomId = roomCode.trim().toUpperCase();
+    this.roomId = cleanRoomCode;
     this.lobbyPin = pin ? String(pin).trim() : null;
     this._pendingRoomCode = this.roomId;
     this._pendingPin = this.lobbyPin;
@@ -617,6 +631,43 @@ export class NetworkManager {
       }
     }
     if (!packet || typeof packet !== 'object') return;
+
+    // --- SECURITY HARDENING (0.3.7 BASTION) ---
+    // 1. Packet Whitelist
+    const ALLOWED_TYPES = new Set(['state', 'hit', 'bullet_fire', 'kill', 'identify', 'phase', 'start_match', 'heartbeat', 'heartbeat-ack', 'error']);
+    if (!packet.type || !ALLOWED_TYPES.has(packet.type)) {
+      console.warn(`[NetworkManager] Dropped unknown/unallowed packet type "${packet.type}" from peer ${senderPeerId}`);
+      return;
+    }
+
+    // 2. Per-Peer Sliding Window Rate Limiting (max 60 packets / 1000ms)
+    const now = Date.now();
+    let limitInfo = this._peerRateLimits.get(senderPeerId);
+    if (!limitInfo || now - limitInfo.windowStart > 1000) {
+      limitInfo = { count: 1, windowStart: now };
+      this._peerRateLimits.set(senderPeerId, limitInfo);
+    } else {
+      limitInfo.count++;
+      if (limitInfo.count > 60) {
+        console.warn(`[NetworkManager] Rate limit exceeded for peer ${senderPeerId} (${limitInfo.count} pkts/sec)`);
+        return;
+      }
+    }
+
+    // 3. Host-Side Hit RPC Validation (damage capping & distance check)
+    if (packet.type === 'hit') {
+      packet.damage = Math.max(0, Math.min(Number(packet.damage) || 0, 200));
+      if (Array.isArray(packet.shooterPos) && Array.isArray(packet.targetPos)) {
+        const dx = packet.shooterPos[0] - packet.targetPos[0];
+        const dy = packet.shooterPos[1] - packet.targetPos[1];
+        const dz = packet.shooterPos[2] - packet.targetPos[2];
+        const distSq = dx * dx + dy * dy + dz * dz;
+        if (distSq > 150 * 150) {
+          console.warn(`[NetworkManager] Rejected hit RPC from ${senderPeerId}: distance exceeds 150m (${Math.sqrt(distSq).toFixed(1)}m)`);
+          return;
+        }
+      }
+    }
 
     // Heartbeat handling (0.3.4)
     if (packet.type === 'heartbeat') {

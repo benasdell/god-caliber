@@ -18,6 +18,7 @@ import { sound } from './audio.js';
 // Preallocated scratch vectors for zero allocation firing logic
 const _muzzlePos = new THREE.Vector3();
 const _shootDir = new THREE.Vector3();
+const _scratchCameraDir = new THREE.Vector3();
 
 class Game {
   constructor() {
@@ -781,10 +782,9 @@ class Game {
 
       // 7. Proximity Check for HUD Interaction Prompt (Zipline, Ladder, or Loot)
       const playerPos = this.player.camera.position;
-      const cameraDir = new THREE.Vector3();
-      this.player.camera.getWorldDirection(cameraDir);
+      this.player.camera.getWorldDirection(_scratchCameraDir);
 
-      const terrainObj = this.sceneManager.terrainManager ? this.sceneManager.terrainManager.getClosestInteractable(playerPos, cameraDir) : null;
+      const terrainObj = this.sceneManager.terrainManager ? this.sceneManager.terrainManager.getClosestInteractable(playerPos, _scratchCameraDir) : null;
       const closestLoot = this.worldItemManager.getClosestInteractable(playerPos);
 
       const distToLoot = closestLoot ? playerPos.distanceTo(closestLoot.meshGroup.position) : Infinity;

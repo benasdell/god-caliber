@@ -3,7 +3,20 @@ import * as THREE from 'three';
 const _tempVec = new THREE.Vector3();
 
 // Maximum number of ground items before oldest are garbage-collected.
-const MAX_GROUND_ITEMS = 50;
+const MAX_GROUND_ITEMS = 60;
+
+function disposeItemMeshGroup(group) {
+  if (!group) return;
+  group.traverse((child) => {
+    if (child.isMesh) {
+      if (child.geometry && !child.geometry._isShared) child.geometry.dispose();
+      if (child.material && !child.material._isShared) {
+        if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+        else child.material.dispose();
+      }
+    }
+  });
+}
 
 export class WorldItemManager {
   constructor(scene, worldOctree) {
@@ -62,6 +75,7 @@ export class WorldItemManager {
   spawnItem(itemData, position, velocityKick = null) {
     while (this.groundItems.length >= MAX_GROUND_ITEMS) {
       const oldest = this.groundItems.shift();
+      disposeItemMeshGroup(oldest.meshGroup);
       this.scene.remove(oldest.meshGroup);
     }
 
@@ -313,6 +327,7 @@ export class WorldItemManager {
     if (idx !== -1) {
       this.groundItems.splice(idx, 1);
     }
+    disposeItemMeshGroup(groundItem.meshGroup);
     this.scene.remove(groundItem.meshGroup);
   }
 }

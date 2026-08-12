@@ -16,6 +16,19 @@ const _totalForce = new THREE.Vector3();
 const _tempDir = new THREE.Vector3();
 const _envSphere = new THREE.Sphere(new THREE.Vector3(), 0.7);
 
+function disposeEnemyGroup(group) {
+  if (!group) return;
+  group.traverse((child) => {
+    if (child.isMesh) {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+        else child.material.dispose();
+      }
+    }
+  });
+}
+
 export class TargetManager {
   constructor(scene, worldOctree, uiManager) {
     this.scene = scene;
@@ -161,6 +174,7 @@ export class TargetManager {
         if (b.respawnTimer === undefined) b.respawnTimer = 4.0;
         b.respawnTimer -= deltaTime;
         if (b.respawnTimer <= 0) {
+          disposeEnemyGroup(b.group);
           this.scene.remove(b.group);
           this.targets = this.targets.filter(t => t !== b);
         }
@@ -289,19 +303,20 @@ export class TargetManager {
           if (distToPlayer <= 30.0 && b.attackCooldown <= 0) {
             const bulletMgr = window.gameInstance ? window.gameInstance.bulletManager : null;
             if (bulletMgr) {
-              const origin = b.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+              const getLiveOrigin = () => b.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+              const getLiveTarget = () => window.gameInstance?.player?.camera?.position || playerPosition;
               if (b.weaponType === 'PISTOL') {
                 b.attackCooldown = 1.2;
-                bulletMgr.spawnEnemyProjectile(origin, playerPosition, 12, 50);
+                bulletMgr.spawnEnemyProjectile(getLiveOrigin(), getLiveTarget(), 12, 50);
                 sound.playImpact();
               } else {
                 b.attackCooldown = 2.0;
-                bulletMgr.spawnEnemyProjectile(origin, playerPosition, 10, 60);
+                bulletMgr.spawnEnemyProjectile(getLiveOrigin(), getLiveTarget(), 10, 60);
                 setTimeout(() => {
-                  if (!b.isDestroyed) bulletMgr.spawnEnemyProjectile(origin, playerPosition, 10, 60);
+                  if (!b.isDestroyed) bulletMgr.spawnEnemyProjectile(getLiveOrigin(), getLiveTarget(), 10, 60);
                 }, 100);
                 setTimeout(() => {
-                  if (!b.isDestroyed) bulletMgr.spawnEnemyProjectile(origin, playerPosition, 10, 60);
+                  if (!b.isDestroyed) bulletMgr.spawnEnemyProjectile(getLiveOrigin(), getLiveTarget(), 10, 60);
                 }, 200);
                 sound.playImpact();
               }

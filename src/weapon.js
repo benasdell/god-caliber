@@ -4,6 +4,15 @@ import { sound } from './audio.js';
 // Preallocated static vectors
 const _targetOffsetZero = new THREE.Vector3(0, 0, 0);
 
+const WEAPON_MATERIAL_CACHE = {
+  receiver: new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.85, roughness: 0.25 }),
+  barrel: new THREE.MeshStandardMaterial({ color: 0x1f2937, metalness: 0.95, roughness: 0.15 }),
+  trim: new THREE.MeshStandardMaterial({ color: 0x374151, metalness: 0.4, roughness: 0.5 }),
+  neon: new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 4.0, metalness: 0.1, roughness: 0.1 }),
+  neonPink: new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 4.0, metalness: 0.1, roughness: 0.1 })
+};
+Object.values(WEAPON_MATERIAL_CACHE).forEach(m => { m._isCached = true; });
+
 // Unified Weapon Blueprints Database
 // Easy to read, edit, balance, and add new weapons in the future
 export const WEAPON_BLUEPRINTS = {
@@ -158,9 +167,17 @@ export class Weapon {
   }
 
   rebuildWeaponModel(baseId) {
-    // Clear old visual children
+    // Clear & dispose old visual children
     while (this.weaponGroup.children.length > 0) {
-      this.weaponGroup.remove(this.weaponGroup.children[0]);
+      const child = this.weaponGroup.children[0];
+      this.weaponGroup.remove(child);
+      child.traverse((c) => {
+        if (c.geometry) c.geometry.dispose();
+        if (c.material && !c.material._isCached) {
+          if (Array.isArray(c.material)) c.material.forEach(m => m.dispose());
+          else c.material.dispose();
+        }
+      });
     }
 
     this.muzzlePoint.copy(this.currentBlueprint.muzzleOffset);
@@ -173,41 +190,11 @@ export class Weapon {
   }
 
   buildProceduralModel(baseId) {
-    // Futuristic Cyberpunk/Neon Art Palette
-    const receiverMat = new THREE.MeshStandardMaterial({
-      color: 0x111827, // Matte obsidian dark metal
-      metalness: 0.85,
-      roughness: 0.25,
-    });
-
-    const barrelMat = new THREE.MeshStandardMaterial({
-      color: 0x1f2937, // Cool metallic steel
-      metalness: 0.95,
-      roughness: 0.15,
-    });
-
-    const trimMat = new THREE.MeshStandardMaterial({
-      color: 0x374151, // Slate gray trim
-      metalness: 0.4,
-      roughness: 0.5,
-    });
-
-    // Glowing Neon Highlights (Futuristic Style)
-    const neonMat = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff, // Electric Cyan
-      emissive: 0x00f0ff,
-      emissiveIntensity: 4.0,
-      metalness: 0.1,
-      roughness: 0.1,
-    });
-
-    const neonPinkMat = new THREE.MeshStandardMaterial({
-      color: 0xff00ff, // Glowing Neon Pink
-      emissive: 0xff00ff,
-      emissiveIntensity: 4.0,
-      metalness: 0.1,
-      roughness: 0.1,
-    });
+    const receiverMat = WEAPON_MATERIAL_CACHE.receiver;
+    const barrelMat = WEAPON_MATERIAL_CACHE.barrel;
+    const trimMat = WEAPON_MATERIAL_CACHE.trim;
+    const neonMat = WEAPON_MATERIAL_CACHE.neon;
+    const neonPinkMat = WEAPON_MATERIAL_CACHE.neonPink;
 
     const addPart = (mesh) => {
       mesh.castShadow = true;

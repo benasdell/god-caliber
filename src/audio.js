@@ -12,7 +12,11 @@ class SoundFX {
 
     this.bgmOsc1 = null;
     this.bgmOsc2 = null;
+    this.bgmLfo = null;
     this.isBGMPlaying = false;
+
+    this.crackBuffer = null;
+    this.tailBuffer = null;
   }
 
   init() {
@@ -36,6 +40,17 @@ class SoundFX {
         this.bgmGain.gain.value = this.bgmVolume;
         this.bgmGain.connect(this.masterGain);
 
+        // Pre-generate static gunshot noise buffers for zero-allocation playback
+        const crackBufSize = Math.floor(this.ctx.sampleRate * 0.06);
+        this.crackBuffer = this.ctx.createBuffer(1, crackBufSize, this.ctx.sampleRate);
+        const crackData = this.crackBuffer.getChannelData(0);
+        for (let i = 0; i < crackBufSize; i++) crackData[i] = Math.random() * 2 - 1;
+
+        const tailBufSize = Math.floor(this.ctx.sampleRate * 0.1);
+        this.tailBuffer = this.ctx.createBuffer(1, tailBufSize, this.ctx.sampleRate);
+        const tailData = this.tailBuffer.getChannelData(0);
+        for (let i = 0; i < tailBufSize; i++) tailData[i] = (Math.random() * 2 - 1) * (1 - i / tailBufSize);
+
         this.startAmbientBGM();
       }
     }
@@ -58,6 +73,19 @@ class SoundFX {
     }
   }
 
+  stopAmbientBGM() {
+    if (!this.isBGMPlaying) return;
+    if (this.bgmOsc1) {
+      try { this.bgmOsc1.stop(); this.bgmOsc1.disconnect(); } catch (e) {}
+      this.bgmOsc1 = null;
+    }
+    if (this.bgmLfo) {
+      try { this.bgmLfo.stop(); this.bgmLfo.disconnect(); } catch (e) {}
+      this.bgmLfo = null;
+    }
+    this.isBGMPlaying = false;
+  }
+
   startAmbientBGM() {
     if (this.isBGMPlaying || !this.ctx) return;
     this.isBGMPlaying = true;
@@ -66,16 +94,16 @@ class SoundFX {
 
     // Ambient Sci-Fi Drone Oscillator 1
     this.bgmOsc1 = this.ctx.createOscillator();
-    const lfo = this.ctx.createOscillator();
+    this.bgmLfo = this.ctx.createOscillator();
     const lfoGain = this.ctx.createGain();
 
     this.bgmOsc1.type = 'sine';
     this.bgmOsc1.frequency.setValueAtTime(55, t); // A1 note
 
-    lfo.frequency.value = 0.2; // Slow pulse
+    this.bgmLfo.frequency.value = 0.2; // Slow pulse
     lfoGain.gain.value = 4;
-    lfo.connect(this.bgmOsc1.frequency);
-    lfo.start();
+    this.bgmLfo.connect(this.bgmOsc1.frequency);
+    this.bgmLfo.start();
 
     // Lowpass filter for smooth ambient tone
     const filter = this.ctx.createBiquadFilter();
@@ -122,11 +150,12 @@ class SoundFX {
     thump.stop(t + 0.085);
 
     // Layer 3: High-frequency crack / supersonic snap (60ms)
-    const crackBufSize = Math.floor(this.ctx.sampleRate * 0.06);
-    const crackBuf = this.ctx.createBuffer(1, crackBufSize, this.ctx.sampleRate);
-    const crackData = crackBuf.getChannelData(0);
-    for (let i = 0; i < crackBufSize; i++) {
-      crackData[i] = Math.random() * 2 - 1;
+    let crackBuf = this.crackBuffer;
+    if (!crackBuf) {
+      const crackBufSize = Math.floor(this.ctx.sampleRate * 0.06);
+      crackBuf = this.ctx.createBuffer(1, crackBufSize, this.ctx.sampleRate);
+      const crackData = crackBuf.getChannelData(0);
+      for (let i = 0; i < crackBufSize; i++) crackData[i] = Math.random() * 2 - 1;
     }
     const crackSrc = this.ctx.createBufferSource();
     crackSrc.buffer = crackBuf;
@@ -146,11 +175,12 @@ class SoundFX {
     crackSrc.start(t);
 
     // Layer 4: Tail reverb rumble (100ms, quiet)
-    const tailBufSize = Math.floor(this.ctx.sampleRate * 0.1);
-    const tailBuf = this.ctx.createBuffer(1, tailBufSize, this.ctx.sampleRate);
-    const tailData = tailBuf.getChannelData(0);
-    for (let i = 0; i < tailBufSize; i++) {
-      tailData[i] = (Math.random() * 2 - 1) * (1 - i / tailBufSize);
+    let tailBuf = this.tailBuffer;
+    if (!tailBuf) {
+      const tailBufSize = Math.floor(this.ctx.sampleRate * 0.1);
+      tailBuf = this.ctx.createBuffer(1, tailBufSize, this.ctx.sampleRate);
+      const tailData = tailBuf.getChannelData(0);
+      for (let i = 0; i < tailBufSize; i++) tailData[i] = (Math.random() * 2 - 1) * (1 - i / tailBufSize);
     }
     const tailSrc = this.ctx.createBufferSource();
     tailSrc.buffer = tailBuf;

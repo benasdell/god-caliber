@@ -77,14 +77,22 @@ export class Controls {
     try {
       const saved = localStorage.getItem('cyberstrike_keybindings');
       if (saved) {
-        this.bindings = { ...this.defaultBindings, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          const VALID_CODE_REGEX = /^(Key[A-Z]|Digit[0-9]|Space|ShiftLeft|ShiftRight|ControlLeft|ControlRight|AltLeft|AltRight|Tab|Escape|Enter|Arrow[A-Za-z]+)$/;
+          for (const key of Object.keys(parsed)) {
+            if (this.defaultBindings.hasOwnProperty(key) && typeof parsed[key] === 'string' && VALID_CODE_REGEX.test(parsed[key])) {
+              this.bindings[key] = parsed[key];
+            }
+          }
+        }
       }
       const profileSaved = localStorage.getItem('cyberstrike_player_profile');
       if (profileSaved) {
         const parsed = JSON.parse(profileSaved);
-        if (parsed.sprintMode) this.sprintMode = parsed.sprintMode;
-        if (parsed.playerName) this.playerName = parsed.playerName;
-        if (parsed.crosshairConfig) this.crosshairConfig = { ...this.crosshairConfig, ...parsed.crosshairConfig };
+        if (parsed.sprintMode && (parsed.sprintMode === 'hold' || parsed.sprintMode === 'toggle')) this.sprintMode = parsed.sprintMode;
+        if (parsed.playerName && typeof parsed.playerName === 'string') this.playerName = parsed.playerName.replace(/<[^>]*>/g, '').trim().substring(0, 16);
+        if (parsed.crosshairConfig && typeof parsed.crosshairConfig === 'object') this.crosshairConfig = { ...this.crosshairConfig, ...parsed.crosshairConfig };
       }
     } catch (e) {
       console.warn('Could not load profile from localStorage', e);

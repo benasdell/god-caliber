@@ -68,13 +68,14 @@ export const MAP_PRESETS = {
 };
 
 export class TerrainManager {
-  constructor(scene, config = DEFAULT_MAP_CONFIG) {
-    this.scene = scene;
+  constructor(gameScene, config = DEFAULT_MAP_CONFIG) {
+    this.gameScene = gameScene;
+    this.scene = gameScene ? (gameScene.isScene || gameScene.isGroup ? gameScene : gameScene.scene) : null;
+    this.environmentGroup = gameScene && gameScene.environmentGroup ? gameScene.environmentGroup : new THREE.Group();
+    if (this.scene && !this.environmentGroup.parent) {
+      this.scene.add(this.environmentGroup);
+    }
     this.config = config;
-
-    this.environmentGroup = new THREE.Group();
-    this.environmentGroup.name = "EnvironmentGroup";
-    this.scene.add(this.environmentGroup);
 
     this.worldOctree = new Octree();
     this.ladders = [];
@@ -102,20 +103,17 @@ export class TerrainManager {
   }
 
   buildMap() {
-    // 1. Build Ground Floor
+    this.ladders = [];
+    this.ziplines = [];
+    this.movingPlatforms = [];
+
+    // 1. Build Ground Floor (1000x1000m)
     const { width, length } = this.config.ground;
-    const gridTexture = this.gameScene.createGridTexture();
-    gridTexture.wrapS = THREE.RepeatWrapping;
-    gridTexture.wrapT = THREE.RepeatWrapping;
-    gridTexture.repeat.set(width / 2, length / 2);
-
-    const floorMat = this.materials.floor.clone();
-    floorMat.map = gridTexture;
-
-    const floorGeo = new THREE.BoxGeometry(width, 2, length);
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.position.set(0, -1, 0);
-    this.addMesh(floor);
+    const groundGeo = new THREE.PlaneGeometry(width, length);
+    const groundMesh = new THREE.Mesh(groundGeo, this.materials.ground);
+    groundMesh.rotation.x = -Math.PI / 2;
+    groundMesh.receiveShadow = true;
+    this.environmentGroup.add(groundMesh);
 
     // 2. Build Outer Perimeter Walls
     const wallH = this.config.perimeterWalls.height;

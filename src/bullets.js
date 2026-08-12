@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { sound } from './audio.js';
+import { HitboxManager } from './hitbox/HitboxManager.js';
 
 const _tempStep = new THREE.Vector3();
 const _scratchRay = new THREE.Ray();
@@ -164,30 +165,55 @@ export class BulletManager {
     const netManager = window.gameInstance?.network;
     let hitPeer = null;
 
+    let hitLimbResult = null;
+
     if (actualTargetManager) {
       for (const bot of actualTargetManager.targets) {
         if (bot.isDestroyed) continue;
-        if (_scratchRay.intersectSphere(bot.collider, _scratchCheckPoint)) {
+        const botPos = bot.position || bot.group?.position;
+        if (bot.characterRig && botPos) {
+          const limbHit = HitboxManager.raycastEntity(_scratchRay, botPos, bot.characterRig);
+          if (limbHit && limbHit.distance < hitDist) {
+            hitDist = limbHit.distance;
+            hitPoint.copy(limbHit.point);
+            hitBot = bot;
+            hitPeer = null;
+            hitLimbResult = limbHit;
+          }
+        } else if (bot.collider && _scratchRay.intersectSphere(bot.collider, _scratchCheckPoint)) {
           const dist = startPos.distanceTo(_scratchCheckPoint);
           if (dist < hitDist) {
             hitDist = dist;
             hitPoint.copy(_scratchCheckPoint);
             hitBot = bot;
             hitPeer = null;
+            hitLimbResult = null;
           }
         }
       }
     }
 
     if (netManager && netManager.peerPlayers) {
-      netManager.peerPlayers.forEach((peer, peerId) => {
-        if (peer.hp > 0 && peer.boundingSphere && _scratchRay.intersectSphere(peer.boundingSphere, _scratchCheckPoint)) {
-          const dist = startPos.distanceTo(_scratchCheckPoint);
-          if (dist < hitDist) {
-            hitDist = dist;
-            hitPoint.copy(_scratchCheckPoint);
-            hitBot = null;
-            hitPeer = peer;
+      netManager.peerPlayers.forEach((peer) => {
+        if (peer.hp > 0) {
+          if (peer.characterRig) {
+            const limbHit = HitboxManager.raycastEntity(_scratchRay, peer.mesh.position, peer.characterRig);
+            if (limbHit && limbHit.distance < hitDist) {
+              hitDist = limbHit.distance;
+              hitPoint.copy(limbHit.point);
+              hitBot = null;
+              hitPeer = peer;
+              hitLimbResult = limbHit;
+            }
+          } else if (peer.boundingSphere && _scratchRay.intersectSphere(peer.boundingSphere, _scratchCheckPoint)) {
+            const dist = startPos.distanceTo(_scratchCheckPoint);
+            if (dist < hitDist) {
+              hitDist = dist;
+              hitPoint.copy(_scratchCheckPoint);
+              hitBot = null;
+              hitPeer = peer;
+              hitLimbResult = null;
+            }
           }
         }
       });
@@ -207,8 +233,9 @@ export class BulletManager {
 
     // Handle hit feedback for Remote Peer Player
     if (hitPeer) {
-      const isHeadshot = hitPoint.y >= hitPeer.mesh.position.y + 1.4;
-      const finalDmg = isHeadshot ? damage * 1.5 : damage;
+      const isHeadshot = hitLimbResult ? hitLimbResult.isHeadshot : (hitPoint.y >= hitPeer.mesh.position.y + 1.4);
+      const mult = hitLimbResult ? hitLimbResult.multiplier : (isHeadshot ? 2.5 : 1.0);
+      const finalDmg = Math.round(damage * mult);
 
       if (actualUiManager) {
         actualUiManager.spawnDamageNumber(finalDmg, hitPoint, isHeadshot);
@@ -227,14 +254,16 @@ export class BulletManager {
           attacker: netManager.peer?.id || 'local',
           attackerName: netManager.playerName || 'Player',
           damage: finalDmg,
-          isHeadshot: isHeadshot
+          isHeadshot: isHeadshot,
+          limb: hitLimbResult ? hitLimbResult.limbZone : 'TORSO'
         });
       }
 
       this.triggerSpark(hitPoint, 0x00ffcc);
     } else if (hitBot) {
-      const isHeadshot = hitPoint.y >= hitBot.position.y + hitBot.headshotMinY;
-      const finalDmg = isHeadshot ? damage * 1.5 : damage;
+      const isHeadshot = hitLimbResult ? hitLimbResult.isHeadshot : (hitPoint.y >= hitBot.position.y + hitBot.headshotMinY);
+      const mult = hitLimbResult ? hitLimbResult.multiplier : (isHeadshot ? 2.5 : 1.0);
+      const finalDmg = Math.round(damage * mult);
 
       hitBot.hp -= finalDmg;
 

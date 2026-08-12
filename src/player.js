@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { Capsule } from 'three/examples/jsm/math/Capsule.js';
 import { sound } from './audio.js';
+import { EnemyFactory } from './enemies/EnemyFactory.js';
+import { CharacterRig } from './rigging/CharacterRig.js';
+import { ProceduralAnimator } from './animation/ProceduralAnimator.js';
 
 // Preallocated static scratch vectors for zero-allocation physics loop
 const _tempVec1 = new THREE.Vector3();
@@ -25,6 +28,11 @@ export class Player {
   constructor(camera, worldOctree) {
     this.camera = camera;
     this.worldOctree = worldOctree;
+
+    // Instantiate Procedural First-Person 1P Body & Arms
+    this.body1P = EnemyFactory.createLocal1PBody();
+    this.body1P.position.set(0, -0.65, -0.20);
+    this.camera.add(this.body1P);
 
     // Heights
     this.STANDING_HEIGHT = 1.45;
@@ -52,6 +60,12 @@ export class Player {
     // Camera angles (yaw & pitch)
     this.yaw = 0;
     this.pitch = 0;
+    this.bodyYaw = 0;
+
+    // Standardized Character Rig & Procedural Animator
+    this.characterRig = new CharacterRig('PROCEDURAL', 0x00f0ff);
+    this.characterRig.setHeadVisibility(false); // Mask head mesh for local 1P camera view
+    this.animator = new ProceduralAnimator(this.characterRig);
 
     // Speeds & Physics (Recalibrated for grounded agility & tactile sprint)
     this.GRAVITY = 25.0;
@@ -103,7 +117,7 @@ export class Player {
   update(deltaTime, controls) {
     if (!controls.isLocked) return;
 
-    // 1. Mouse Look (Pitch & Yaw)
+    // 1. Mouse Look (Pitch & Yaw) & MMB Free-Look Decoupling
     const mouseDelta = controls.getAndResetMouseDelta();
     const sensitivity = (controls.sensitivity || 0.0022);
 
@@ -112,6 +126,19 @@ export class Player {
 
     const maxPitch = Math.PI / 2 - 0.01;
     this.pitch = Math.max(-maxPitch, Math.min(maxPitch, this.pitch));
+
+    if (controls.isFreeLooking) {
+      // Clamp camera yaw relative to bodyYaw within [-110 deg, +110 deg]
+      const relativeYaw = THREE.MathUtils.clamp(
+        this.yaw - this.bodyYaw,
+        -THREE.MathUtils.degToRad(110),
+        THREE.MathUtils.degToRad(110)
+      );
+      this.yaw = this.bodyYaw + relativeYaw;
+    } else {
+      // Smoothly blend bodyYaw back to camera yaw
+      this.bodyYaw = THREE.MathUtils.lerp(this.bodyYaw, this.yaw, 1.0 - Math.exp(-12.0 * deltaTime));
+    }
 
     this.camera.rotation.order = 'YXZ';
     this.camera.rotation.y = this.yaw;
@@ -362,6 +389,32 @@ export class Player {
       const bobX = Math.sin(this.moveDistance * 0.5) * 0.03;
       const bobY = Math.abs(Math.sin(this.moveDistance)) * 0.05;
       this.camera.position.add(_tempDir.set(bobX, bobY, 0).applyAxisAngle(_axisY, this.yaw));
+    }
+
+    // Dynamic First-Person Local 1P Body Positioning
+    if (this.body1P) {
+      const lowerBody = this.body1P.getObjectByName('lowerBody1P');
+      if (lowerBody) {
+        const pitchDownPct = Math.max(0, (this.pitch - 0.15) / 0.85);
+        lowerBody.visible = pitchDownPct > 0.02;
+        lowerBody.position.set(0, -0.75 + pitchDownPct * 0.1, -0.10 - pitchDownPct * 0.15);
+      }
+    }
+
+    // Sync Procedural Character Rig & Animator
+    if (this.characterRig) {
+      this.characterRig.root.position.copy(this.position);
+      this.characterRig.root.rotation.y = this.bodyYaw;
+      if (this.animator) {
+        this.animator.update(
+          deltaTime,
+          this.velocity,
+          this.onGround,
+          this.isSliding,
+          controls.keyState?.reload || false,
+          controls.mouseDown || false
+        );
+      }
     }
 
     // 8. Void Fall Death Plane & Safety Net

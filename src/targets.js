@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { sound } from './audio.js';
 import { ENEMY_REGISTRY } from './enemies/EnemyRegistry.js';
 import { SteeringBehaviors } from './enemies/SteeringBehaviors.js';
-import { EnemyFactory } from './enemies/EnemyFactory.js';
+import { EnemyFactory, InstancedHealthBarManager, GLOBAL_HUMANOID_POOL, disposeHierarchy } from './enemies/EnemyFactory.js';
 import { ClusterSpawner } from './enemies/ClusterSpawner.js';
 
 const _forceSeek = new THREE.Vector3();
@@ -16,25 +16,16 @@ const _totalForce = new THREE.Vector3();
 const _tempDir = new THREE.Vector3();
 const _envSphere = new THREE.Sphere(new THREE.Vector3(), 0.7);
 
-function disposeEnemyGroup(group) {
-  if (!group) return;
-  group.traverse((child) => {
-    if (child.isMesh) {
-      if (child.geometry) child.geometry.dispose();
-      if (child.material) {
-        if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-        else child.material.dispose();
-      }
-    }
-  });
-}
-
 export class TargetManager {
   constructor(scene, worldOctree, uiManager) {
     this.scene = scene;
     this.worldOctree = worldOctree;
     this.uiManager = uiManager;
     this.targets = [];
+
+    // Instanced Overhead Billboard Health Bar System
+    this.healthBarManager = new InstancedHealthBarManager(128);
+    this.scene.add(this.healthBarManager.mesh);
 
     this.currentWave = 0;
     this.waveTimer = 30.0;
@@ -169,14 +160,15 @@ export class TargetManager {
     const activeBotsCount = activeBots.length;
 
     // Cleanup dead bots when respawn timer expires
-    for (const b of this.targets) {
+    for (let i = this.targets.length - 1; i >= 0; i--) {
+      const b = this.targets[i];
       if (b.isDestroyed) {
         if (b.respawnTimer === undefined) b.respawnTimer = 4.0;
         b.respawnTimer -= deltaTime;
         if (b.respawnTimer <= 0) {
-          disposeEnemyGroup(b.group);
+          GLOBAL_HUMANOID_POOL.release(b.type, b.group);
           this.scene.remove(b.group);
-          this.targets = this.targets.filter(t => t !== b);
+          this.targets.splice(i, 1);
         }
       }
     }
@@ -351,7 +343,18 @@ export class TargetManager {
       // Sync sphere hit collider and 3D mesh
       b.collider.center.copy(b.position).add(b.colliderOffset);
       b.group.position.copy(b.position);
+
+      // Tick procedural animation state machine for enemy rig
+      if (b.animator) {
+        b.animator.update(deltaTime, b.velocity, b.type !== 'DRONE', false, false, b.attackCooldown > 0);
+      }
     }
+
+    // Update Instanced Billboard Health Bars for all active targets & peer players
+    const peerPlayers = window.gameInstance?.networkManager?.peerPlayers 
+      ? Array.from(window.gameInstance.networkManager.peerPlayers.values()) 
+      : [];
+    this.healthBarManager.update(this.targets, peerPlayers, this.scene.camera, deltaTime);
   }
 
   spawnSingleZoneBot(type) {

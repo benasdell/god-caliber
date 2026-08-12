@@ -778,6 +778,9 @@ export class NetworkManager {
       hp: Math.ceil(this.player.hp ?? 100),
       weapon: this.weapon?.currentWeaponType || 'weapon_ar15',
       firing: firing,
+      sprinting: Boolean(this.player.isSprinting),
+      sliding: Boolean(this.player.isSliding),
+      reloading: Boolean(this.weapon?.isReloading),
       name: this.playerName
     };
 

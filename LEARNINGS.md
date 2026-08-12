@@ -104,3 +104,16 @@
   Recipe items must be learned directly within the player inventory via right-click interaction (`learnRecipe()`). Consuming the recipe item permanently appends the target base ID to `player.learnedRecipes` and persists state to `localStorage`.
 - **Dynamic Blueprint Grid Unlocking & Dedicated Action Button**:
   Once a recipe is learned, dynamically append the specific Special Legendary item card (e.g. `⚡ VORTEX ASSAULT RIFLE`) to the Crafting Bench blueprint grid. Selecting a Legendary blueprint updates the forge action button to **`CRAFT ITEM`** with fixed dust costs (30 Epic, 20 Legendary Dust). Remove raw `Recipe` items from crafting grids and upgrade slots to eliminate ambiguous upgrade states.
+
+---
+
+## 11. Entity Model, Procedural Animation & Limb Hitbox Invariants (Patch 0.3.10 Kraken)
+
+- **Standardized 15-Bone Hierarchy Standardization**:
+  All humanoid entities (Host Player, Client Peer Players, AI Enemies) adopt a single normalized 15-node bone hierarchy (`CharacterRig`). Separating procedural primitive nodes from GLTF skinned meshes via standard joint node lookups eliminates code divergence across entity types.
+- **Head Mesh Visibility Masking for 1P Local Camera**:
+  When mounting the camera inside the local player capsule, mask the head mesh (`setHeadVisibility(false)`). This prevents camera clipping inside the player's skull while keeping the torso, legs, and boots fully visible in 3D space when looking down (`pitch < -0.2`).
+- **2-Pass Raycast for Limb Hitboxes**:
+  Never execute high-poly or multi-part raycasts against all scene meshes directly. Test an entity's broadphase bounding sphere (`R=1.15m`) first. Only if the ray intersects the sphere should narrowphase matrix-transformed bone local OBB checks be evaluated.
+- **Instanced Billboard Health Bars**:
+  To render overhead status bars for mass entities, use a single `InstancedMesh` with a spherical camera-facing GLSL shader (`InstancedHealthBars`). Updating typed instance buffer attributes (`instancePosition`, `instanceHpRatio`) achieves 60-120+ FPS with 1 single WebGL draw call.

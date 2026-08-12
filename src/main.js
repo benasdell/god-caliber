@@ -32,8 +32,9 @@ class Game {
     // 2. Initialize Controls
     this.controls = new Controls(this.canvas, this.blocker);
 
-    // 3. Initialize Player Capsule Physics
+    // 3. Initialize Player Capsule Physics & Character Rig
     this.player = new Player(this.sceneManager.camera, this.sceneManager.worldOctree);
+    this.sceneManager.scene.add(this.player.characterRig.root);
 
     // 4. Initialize Weapon (Procedural AR-15 at 450 RPM)
     this.weapon = new Weapon(this.sceneManager.camera);

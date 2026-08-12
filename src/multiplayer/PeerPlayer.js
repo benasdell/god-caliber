@@ -1,11 +1,15 @@
 import * as THREE from 'three';
-import { EnemyFactory } from '../enemies/EnemyFactory.js';
+import { EnemyFactory, disposeHierarchy, GLOBAL_HUMANOID_POOL } from '../enemies/EnemyFactory.js';
+import { CharacterRig } from '../rigging/CharacterRig.js';
+import { ProceduralAnimator } from '../animation/ProceduralAnimator.js';
+import { HitboxManager } from '../hitbox/HitboxManager.js';
 
 export class PeerPlayer {
   constructor(scene, id, displayName = 'Player', color = 0x00ffcc) {
     this.scene = scene;
     this.id = id;
     this.displayName = displayName;
+    this.color = color;
     this.hp = 100;
     this.maxHp = 100;
     this.weapon = 'weapon_ar15';
@@ -16,15 +20,15 @@ export class PeerPlayer {
     this.deaths = 0;
     this.damageDealt = 0;
 
-    // Create 3D humanoid mesh
-    if (typeof EnemyFactory.createHumanoidMesh === 'function') {
-      this.mesh = EnemyFactory.createHumanoidMesh(color);
-    } else {
-      this.mesh = this.createDefaultHumanoidMesh(color);
-    }
+    // Create 3D humanoid character rig
+    this.characterRig = new CharacterRig('PROCEDURAL', color);
+    this.animator = new ProceduralAnimator(this.characterRig);
+    HitboxManager.attachLimbHitboxes(this.characterRig);
+
+    this.mesh = this.characterRig.root;
     this.scene.add(this.mesh);
 
-    // Bounding sphere for bullet raycasting hit detection
+    // Bounding sphere for broadphase bullet raycasting hit detection
     this.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 0.65);
     this.boundingSphere.center.copy(this.mesh.position).add(new THREE.Vector3(0, 1.0, 0));
 
@@ -155,57 +159,35 @@ export class PeerPlayer {
 
   update(deltaTime) {
     const factor = 1.0 - Math.exp(-20.0 * deltaTime);
+    
+    // Estimate velocity for procedural animation gait
+    const prevPos = this.mesh.position.clone();
     this.mesh.position.lerp(this.targetPosition, factor);
     this.mesh.rotation.y = THREE.MathUtils.lerp(this.mesh.rotation.y, this.targetYaw, factor);
+
+    const estVelocity = this.mesh.position.clone().sub(prevPos).divideScalar(Math.max(0.001, deltaTime));
+
+    if (this.animator) {
+      this.animator.update(deltaTime, estVelocity, true, false, false, this.isFiring);
+    }
 
     if (this.boundingSphere) {
       this.boundingSphere.center.copy(this.mesh.position).add(new THREE.Vector3(0, 1.0, 0));
     }
   }
 
-  createDefaultHumanoidMesh(color) {
-    const group = new THREE.Group();
-    const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.4 });
-    const visorMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 2.0 });
-    const armorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
-
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), bodyMat);
-    head.position.set(0, 1.7, 0);
-    group.add(head);
-
-    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.1, 0.05), visorMat);
-    visor.position.set(0, 1.72, 0.2);
-    group.add(visor);
-
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.75, 0.35), bodyMat);
-    torso.position.set(0, 1.05, 0);
-    group.add(torso);
-
-    const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.65, 0.2), bodyMat);
-    leftLeg.position.set(-0.16, 0.33, 0);
-    group.add(leftLeg);
-
-    const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.65, 0.2), bodyMat);
-    rightLeg.position.set(0.16, 0.33, 0);
-    group.add(rightLeg);
-
-    const gun = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.15, 0.45), armorMat);
-    gun.position.set(0.32, 1.1, 0.25);
-    group.add(gun);
-
-    return group;
-  }
-
   destroy() {
-    if (this.mesh && this.scene) {
-      this.scene.remove(this.mesh);
-    }
     if (this.nameplate && this.nameplate.material) {
       this.nameplate.material.dispose();
     }
     if (this.texture) {
       this.texture.dispose();
     }
+    if (this.mesh && this.scene) {
+      GLOBAL_HUMANOID_POOL.release('PEER_PLAYER', this.mesh);
+      this.scene.remove(this.mesh);
+    }
   }
 }
+
 

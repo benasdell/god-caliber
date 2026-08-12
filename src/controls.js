@@ -36,6 +36,9 @@ export class Controls {
       gap: 4,
       opacity: 0.9
     };
+    this.rightMouseDown = false;
+    this.middleMouseDown = false;
+    this.isFreeLooking = false;
 
     this.bindings = { ...this.defaultBindings };
     this.loadBindings();
@@ -207,6 +210,10 @@ export class Controls {
       if (event.button === 0) { // Left click
         this.mouseDown = true;
         this.shootRequested = true;
+      } else if (event.button === 1) { // Middle click (Free Look)
+        this.middleMouseDown = true;
+        this.isFreeLooking = true;
+        event.preventDefault();
       } else if (event.button === 2) { // Right click
         this.rightMouseDown = true;
       }
@@ -215,6 +222,9 @@ export class Controls {
     document.addEventListener('mouseup', (event) => {
       if (event.button === 0) {
         this.mouseDown = false;
+      } else if (event.button === 1) {
+        this.middleMouseDown = false;
+        this.isFreeLooking = false;
       } else if (event.button === 2) {
         this.rightMouseDown = false;
       }

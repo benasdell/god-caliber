@@ -143,42 +143,48 @@ export class TerrainManager {
     this.addMesh(eWall);
 
     // 3. Build Platforms
-    this.config.platforms.forEach(p => {
-      const geo = new THREE.BoxGeometry(p.width, p.height, p.length);
-      const mesh = new THREE.Mesh(geo, this.materials.platform);
-      mesh.position.set(p.x, p.y, p.z);
-      this.addMesh(mesh);
+    if (this.config.platforms) {
+      this.config.platforms.forEach(p => {
+        const geo = new THREE.BoxGeometry(p.width, p.height, p.length);
+        const mesh = new THREE.Mesh(geo, this.materials.platform);
+        mesh.position.set(p.x, p.y, p.z);
+        this.addMesh(mesh);
 
-      // Gold accent border trim around top edge
-      const trimGeo = new THREE.BoxGeometry(p.width + 0.2, 0.2, p.length + 0.2);
-      const trim = new THREE.Mesh(trimGeo, this.materials.accent);
-      trim.position.set(p.x, p.y + p.height / 2, p.z);
-      this.addMesh(trim);
-    });
+        // Gold accent border trim around top edge
+        const trimGeo = new THREE.BoxGeometry(p.width + 0.2, 0.2, p.length + 0.2);
+        const trim = new THREE.Mesh(trimGeo, this.materials.accent);
+        trim.position.set(p.x, p.y + p.height / 2, p.z);
+        this.addMesh(trim);
+      });
+    }
 
     // 4. Build True Triangular Prism Ramps
-    this.config.ramps.forEach(r => {
-      const rampGeo = createTriangularRampGeometry(r.width, r.height, r.length);
-      const rampMesh = new THREE.Mesh(rampGeo, this.materials.platform);
-      rampMesh.position.set(r.x, r.y, r.z);
-      rampMesh.rotation.y = r.rotationY || 0;
-      this.addMesh(rampMesh);
-    });
+    if (this.config.ramps) {
+      this.config.ramps.forEach(r => {
+        const rampGeo = createTriangularRampGeometry(r.width, r.height, r.length);
+        const rampMesh = new THREE.Mesh(rampGeo, this.materials.platform);
+        rampMesh.position.set(r.x, r.y, r.z);
+        rampMesh.rotation.y = r.rotationY || 0;
+        this.addMesh(rampMesh);
+      });
+    }
 
     // 5. Build Pillars
-    this.config.pillars.forEach(p => {
-      const geo = new THREE.CylinderGeometry(p.radius, p.radius, p.height, 16);
-      const mesh = new THREE.Mesh(geo, this.materials.wall);
-      mesh.position.set(p.x, p.y, p.z);
-      this.addMesh(mesh);
+    if (this.config.pillars) {
+      this.config.pillars.forEach(p => {
+        const geo = new THREE.CylinderGeometry(p.radius, p.radius, p.height, 16);
+        const mesh = new THREE.Mesh(geo, this.materials.wall);
+        mesh.position.set(p.x, p.y, p.z);
+        this.addMesh(mesh);
 
-      // Neon accent torus ring
-      const ringGeo = new THREE.TorusGeometry(p.radius + 0.1, 0.08, 16, 32);
-      const ring = new THREE.Mesh(ringGeo, this.materials.accent);
-      ring.rotation.x = Math.PI / 2;
-      ring.position.set(p.x, p.y - 2, p.z);
-      this.addMesh(ring);
-    });
+        // Neon accent torus ring
+        const ringGeo = new THREE.TorusGeometry(p.radius + 0.1, 0.08, 16, 32);
+        const ring = new THREE.Mesh(ringGeo, this.materials.accent);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.set(p.x, p.y - 2, p.z);
+        this.addMesh(ring);
+      });
+    }
 
     // 5. Tactical Cover Walls (Full 2.2m Height & Short Barriers)
     if (this.config.coverWalls) {
@@ -303,113 +309,119 @@ export class TerrainManager {
         this.addMesh(roof);
       });
     }
-    this.config.walkways.forEach(wk => {
-      const start = new THREE.Vector3(wk.x1, wk.y1, wk.z1);
-      const end = new THREE.Vector3(wk.x2, wk.y2, wk.z2);
-      const length = start.distanceTo(end);
-      const midPoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+    if (this.config.walkways) {
+      this.config.walkways.forEach(wk => {
+        const start = new THREE.Vector3(wk.x1, wk.y1, wk.z1);
+        const end = new THREE.Vector3(wk.x2, wk.y2, wk.z2);
+        const length = start.distanceTo(end);
+        const midPoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
 
-      const geo = new THREE.BoxGeometry(wk.width, wk.thickness, length);
-      const mesh = new THREE.Mesh(geo, this.materials.walkway);
-      mesh.position.copy(midPoint);
-      mesh.lookAt(end);
-      this.addMesh(mesh);
-    });
+        const geo = new THREE.BoxGeometry(wk.width, wk.thickness, length);
+        const mesh = new THREE.Mesh(geo, this.materials.walkway);
+        mesh.position.copy(midPoint);
+        mesh.lookAt(end);
+        this.addMesh(mesh);
+      });
+    }
 
     // 8. Build Vertical Ladders
-    this.config.ladders.forEach(lad => {
-      const height = lad.yEnd - lad.yStart;
-      const centerY = (lad.yStart + lad.yEnd) / 2;
+    if (this.config.ladders) {
+      this.config.ladders.forEach(lad => {
+        const height = lad.yEnd - lad.yStart;
+        const centerY = (lad.yStart + lad.yEnd) / 2;
 
-      const ladderGroup = new THREE.Group();
-      ladderGroup.position.set(lad.x, centerY, lad.z);
-      ladderGroup.rotation.y = lad.rotationY || 0;
+        const ladderGroup = new THREE.Group();
+        ladderGroup.position.set(lad.x, centerY, lad.z);
+        ladderGroup.rotation.y = lad.rotationY || 0;
 
-      // Vertical side rails
-      const railGeo = new THREE.BoxGeometry(0.1, height, 0.1);
-      const leftRail = new THREE.Mesh(railGeo, this.materials.wall);
-      leftRail.position.set(-0.5, 0, 0);
-      ladderGroup.add(leftRail);
+        // Vertical side rails
+        const railGeo = new THREE.BoxGeometry(0.1, height, 0.1);
+        const leftRail = new THREE.Mesh(railGeo, this.materials.wall);
+        leftRail.position.set(-0.5, 0, 0);
+        ladderGroup.add(leftRail);
 
-      const rightRail = new THREE.Mesh(railGeo, this.materials.wall);
-      rightRail.position.set(0.5, 0, 0);
-      ladderGroup.add(rightRail);
+        const rightRail = new THREE.Mesh(railGeo, this.materials.wall);
+        rightRail.position.set(0.5, 0, 0);
+        ladderGroup.add(rightRail);
 
-      // Horizontal glowing rungs
-      const numRungs = Math.floor(height / 0.5);
-      const rungGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.0, 8);
-      for (let i = 0; i < numRungs; i++) {
-        const rungY = -height / 2 + (i + 0.5) * 0.5;
-        const rung = new THREE.Mesh(rungGeo, this.materials.ladder);
-        rung.rotation.z = Math.PI / 2;
-        rung.position.set(0, rungY, 0);
-        ladderGroup.add(rung);
-      }
+        // Horizontal glowing rungs
+        const numRungs = Math.floor(height / 0.5);
+        const rungGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.0, 8);
+        for (let i = 0; i < numRungs; i++) {
+          const rungY = -height / 2 + (i + 0.5) * 0.5;
+          const rung = new THREE.Mesh(rungGeo, this.materials.ladder);
+          rung.rotation.z = Math.PI / 2;
+          rung.position.set(0, rungY, 0);
+          ladderGroup.add(rung);
+        }
 
-      this.addMesh(ladderGroup);
-      this.ladders.push({
-        ...lad,
-        height,
-        centerY,
-        position: new THREE.Vector3(lad.x, centerY, lad.z)
+        this.addMesh(ladderGroup);
+        this.ladders.push({
+          ...lad,
+          height,
+          centerY,
+          position: new THREE.Vector3(lad.x, centerY, lad.z)
+        });
       });
-    });
+    }
 
     // 9. Build Ziplines & Mounting Posts on Top of Pillars
-    const postPositions = [
-      [-40, 10.0, -40], [40, 10.0, -40],
-      [-40, 10.0, 40],  [40, 10.0, 40],
-      [0, 3.0, 0]
-    ];
+    if (this.config.ziplines) {
+      const postPositions = [
+        [-40, 10.0, -40], [40, 10.0, -40],
+        [-40, 10.0, 40],  [40, 10.0, 40],
+        [0, 3.0, 0]
+      ];
 
-    postPositions.forEach(([px, py, pz]) => {
-      // Metallic post geometry
-      const postGeo = new THREE.CylinderGeometry(0.2, 0.25, 1.4, 12);
-      const postMesh = new THREE.Mesh(postGeo, this.materials.wall);
-      postMesh.position.set(px, py + 0.7, pz);
-      this.addMesh(postMesh);
+      postPositions.forEach(([px, py, pz]) => {
+        // Metallic post geometry
+        const postGeo = new THREE.CylinderGeometry(0.2, 0.25, 1.4, 12);
+        const postMesh = new THREE.Mesh(postGeo, this.materials.wall);
+        postMesh.position.set(px, py + 0.7, pz);
+        this.addMesh(postMesh);
 
-      // Top glowing pulley ring hook
-      const hookGeo = new THREE.TorusGeometry(0.25, 0.05, 12, 24);
-      const hookMesh = new THREE.Mesh(hookGeo, this.materials.accent);
-      hookMesh.position.set(px, py + 1.4, pz);
-      hookMesh.rotation.x = Math.PI / 2;
-      this.addMesh(hookMesh);
-    });
-
-    this.config.ziplines.forEach(zip => {
-      const start = new THREE.Vector3(...zip.start);
-      const end = new THREE.Vector3(...zip.end);
-
-      // Cable curve / tube geometry
-      const curve = new THREE.LineCurve3(start, end);
-      const cableGeo = new THREE.TubeGeometry(curve, 32, 0.08, 8, false);
-      const cableMesh = new THREE.Mesh(cableGeo, this.materials.cable);
-      this.addMesh(cableMesh);
-
-      // Interactive Handle Grips at both ends
-      const handleGeo = new THREE.TorusGeometry(0.35, 0.06, 12, 24);
-
-      const startHandle = new THREE.Mesh(handleGeo, this.materials.handle);
-      startHandle.position.copy(start);
-      startHandle.rotation.x = Math.PI / 2;
-      this.scene.add(startHandle);
-
-      const endHandle = new THREE.Mesh(handleGeo, this.materials.handle);
-      endHandle.position.copy(end);
-      endHandle.rotation.x = Math.PI / 2;
-      this.scene.add(endHandle);
-
-      this.ziplines.push({
-        ...zip,
-        start,
-        end,
-        length: start.distanceTo(end),
-        dir: new THREE.Vector3().subVectors(end, start).normalize(),
-        startHandle,
-        endHandle
+        // Top glowing pulley ring hook
+        const hookGeo = new THREE.TorusGeometry(0.25, 0.05, 12, 24);
+        const hookMesh = new THREE.Mesh(hookGeo, this.materials.accent);
+        hookMesh.position.set(px, py + 1.4, pz);
+        hookMesh.rotation.x = Math.PI / 2;
+        this.addMesh(hookMesh);
       });
-    });
+
+      this.config.ziplines.forEach(zip => {
+        const start = new THREE.Vector3(...zip.start);
+        const end = new THREE.Vector3(...zip.end);
+
+        // Cable curve / tube geometry
+        const curve = new THREE.LineCurve3(start, end);
+        const cableGeo = new THREE.TubeGeometry(curve, 32, 0.08, 8, false);
+        const cableMesh = new THREE.Mesh(cableGeo, this.materials.cable);
+        this.addMesh(cableMesh);
+
+        // Interactive Handle Grips at both ends
+        const handleGeo = new THREE.TorusGeometry(0.35, 0.06, 12, 24);
+
+        const startHandle = new THREE.Mesh(handleGeo, this.materials.handle);
+        startHandle.position.copy(start);
+        startHandle.rotation.x = Math.PI / 2;
+        this.scene.add(startHandle);
+
+        const endHandle = new THREE.Mesh(handleGeo, this.materials.handle);
+        endHandle.position.copy(end);
+        endHandle.rotation.x = Math.PI / 2;
+        this.scene.add(endHandle);
+
+        this.ziplines.push({
+          ...zip,
+          start,
+          end,
+          length: start.distanceTo(end),
+          dir: new THREE.Vector3().subVectors(end, start).normalize(),
+          startHandle,
+          endHandle
+        });
+      });
+    }
   }
 
   getRaycastTarget(raycaster) {

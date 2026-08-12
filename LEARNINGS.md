@@ -1,0 +1,45 @@
+# God-Caliber — Engineering Learnings & Wisdom Log
+
+> **Purpose**: Record trial-and-error experiences, critical bug root causes, and architectural invariants to prevent recurring mistakes in future patches.
+
+---
+
+## 1. WebRTC & PeerJS Multiplayer Networking (Patch 0.3.5)
+
+- **Legacy `{ reliable: false }` DataChannel Option**:
+  In PeerJS 1.5+, passing `{ reliable: false }` to `peer.connect()` injects legacy PeerJS 0.3 parameters into `RTCPeerConnection.createDataChannel`. This causes data channel creation to silently fail or time out on modern browsers. Always use default options or standard `{ serialization: 'json' }`.
+- **PeerJS Cloud Signaling Parameter Override**:
+  Hardcoding `{ host: '0.peerjs.com', port: 443, secure: true, path: '/' }` in `getPeerConfig()` overrides internal PeerServer cluster routing and causes signaling registration drops. Omit `host`/`port` overrides when targeting PeerJS Cloud defaults.
+- **Localhost mDNS & Hairpin NAT Failure Mode**:
+  When testing two tabs on `http://localhost` on Windows/Chrome, Chrome conceals local IP addresses behind `.local` mDNS hostnames due to WebRTC privacy protection. If local mDNS resolution fails or router blocks Hairpin NAT loopback (sending UDP packets to public IP inside LAN), STUN candidates fail.
+  *Fix*: Added OpenRelay TURN fallback (`turn:openrelay.metered.ca:80`) by default in `getIceServers()`. TURN relay routes packets through external relay sockets, bypassing Hairpin NAT and mDNS resolution completely!
+- **Cloudflare Tunnel Scope vs WebRTC**:
+  `cloudflared tunnel --url http://localhost:5173` proxies **HTTP/HTTPS frontend traffic on port 5173**. It **does NOT proxy WebRTC UDP/TCP P2P media/data channels**. WebRTC connections rely on STUN/TURN candidate exchange.
+
+---
+
+## 2. Three.js GPU Memory Management (Patch 0.3.4)
+
+- **Geometry & Material Disposal**:
+  Removing a mesh from the scene with `scene.remove(mesh)` does NOT free GPU memory. You MUST explicitly call `mesh.geometry.dispose()`, `mesh.material.dispose()`, and `texture.dispose()` on all child meshes and materials.
+
+---
+
+## 3. Function & State Naming Invariants
+
+- **Impure Side-Effecting Functions**:
+  Always name impure functions to explicitly state side effects (e.g. `loadIntoStateAndNotify()`, `saveFireAndForget()`).
+- **Async Error Handling**:
+  Never use `void asyncFn()`. Always `await` async functions or catch internal errors explicitly inside fire-and-forget helpers.
+
+---
+
+## 4. Player Physics vs Network Proxy Architecture (Patch 0.3.6)
+
+- **Local Player Capsule Position Sync**:
+  In Three.js physics loops using `three/examples/jsm/math/Capsule.js`, translating `this.collider` does NOT automatically mutate `this.position`. If `this.position` is not explicitly synced (`this.position.set(collider.start.x, collider.start.y - 0.35, collider.start.z)`), network state broadcasters will send stale initial spawn coordinates forever.
+- **Raycasting Peer Bounding Spheres**:
+  Hitscan bullet raycasting against remote player avatars requires attaching an updated `boundingSphere` (`this.boundingSphere.center.copy(mesh.position).add(0, 1.0, 0)`) to `PeerPlayer`. Raycasting directly against 3D humanoid mesh groups without bounding volumes or octrees drops hit detection precision.
+- **Scoreboard Data Telemetry Unification**:
+  Never mix simulated dummy points loops with real multiplayer stats. Compute dynamic scoreboard rows by querying `window.gameInstance.player` for local stats, `network.peerPlayers` for human peers, and `targetManager.targets` for active AI bots.
+

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>God-Caliber - Standalone FPS</title>
+  <script>
+    window.addEventListener('error', function(e) {
+      var div = document.createElement('div');
+      div.style.position = 'fixed';
+      div.style.top = '0';
+      div.style.left = '0';
+      div.style.width = '100%';
+      div.style.background = 'rgba(255, 0, 0, 0.9)';
+      div.style.color = 'white';
+      div.style.padding = '20px';
+      div.style.zIndex = '999999';
+      div.style.fontFamily = 'monospace';
+      div.style.fontSize = '14px';
+      div.style.whiteSpace = 'pre-wrap';
+      div.textContent = 'RUNTIME ERROR:\n' + e.message + '\n\nFile: ' + e.filename + '\nLine: ' + e.lineno + ' Col: ' + e.colno + '\n\nStack:\n' + (e.error ? e.error.stack : 'N/A');
+      document.body.appendChild(div);
+    });
+  </script>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Pause & Start Overlay -->
+    <div id="blocker">
+      <div id="instructions">
+        <h1>GOD-CALIBER</h1>
+        <p class="subtitle">Click ENTER COMBAT ZONE to lock cursor & enter combat zone</p>
+        
+        <!-- Tab Navigation Header -->
+        <div class="menu-tabs">
+          <button class="tab-btn active" data-tab="tab-play">PLAY</button>
+          <button class="tab-btn" data-tab="tab-multiplayer">MULTIPLAYER</button>
+          <button class="tab-btn" data-tab="tab-crosshair">CROSSHAIR</button>
+          <button class="tab-btn" data-tab="tab-options">OPTIONS</button>
+          <button class="tab-btn" data-tab="tab-controls">CONTROLS</button>
+          <button class="tab-btn" data-tab="tab-credits">CREDITS</button>
+        </div>
+
+        <!-- Tab 1: Play Overview -->
+        <div id="tab-play" class="tab-content active">
+          <div class="quick-overview">
+            <div class="control-item"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> Move</div>
+            <div class="control-item"><span class="key wide">Shift</span> Sprint</div>
+            <div class="control-item"><span class="key wide">Ctrl</span> Crouch / Slide</div>
+            <div class="control-item"><span class="key wide">Space</span> Jump</div>
+            <div class="control-item"><span class="key">L-CLICK</span> Fire</div>
+            <div class="control-item"><span class="key">R</span> Reload</div>
+          </div>
+          <button id="start-btn">ENTER COMBAT ZONE</button>
+        </div>
+
+        <!-- Tab 2: Multiplayer & Profile -->
+        <div id="tab-multiplayer" class="tab-content">
+          <div class="options-group">
+            <div class="option-row">
+              <label for="player-name-input">Call-sign / Name:</label>
+              <input type="text" id="player-name-input" class="text-input" value="Player_1" placeholder="Enter Call-sign..." maxLength="16" />
+            </div>
+            <div class="option-row">
+              <label for="lobby-pin-input">Lobby Passcode / PIN:</label>
+              <input type="text" id="lobby-pin-input" class="text-input" placeholder="Optional 4-digit PIN..." maxLength="4" style="width: 140px;" />
+            </div>
+            <div class="option-row">
+              <label>Lobby Status:</label>
+              <span id="lobby-status-text" style="color: #00ffcc; font-weight: bold;">Singleplayer (Local Dev Server)</span>
+            </div>
+            <div class="option-row button-row" style="gap: 10px; flex-wrap: wrap;">
+              <button id="host-lobby-btn" class="rebind-btn wide-btn">HOST LOBBY</button>
+              <button id="copy-link-btn" class="rebind-btn wide-btn hidden" style="background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #00ffcc;">COPY INVITE LINK 📋</button>
+              <button id="discord-share-btn" class="rebind-btn wide-btn hidden" style="background: rgba(88, 101, 242, 0.2); border-color: #5865F2; color: #5865F2;">SHARE TO DISCORD 🎮</button>
+            </div>
+            <div class="option-row" style="margin-top: 15px;">
+              <label for="room-code-input">Join Room Code:</label>
+              <input type="text" id="room-code-input" class="text-input" placeholder="e.g. GC-8842" style="width: 140px; text-transform: uppercase;" />
+              <button id="join-lobby-btn" class="rebind-btn" style="margin-left: 10px;">JOIN LOBBY</button>
+            </div>
+            <div class="connected-players-container" style="margin-top: 15px; border-top: 1px solid rgba(0,255,204,0.2); padding-top: 10px;">
+              <label style="color: #00ffcc; font-size: 14px; font-weight: bold;">Connected Players in Lobby:</label>
+              <div id="connected-players-list" style="margin-top: 8px; font-size: 13px; color: #cbd5e1; display: flex; flex-direction: column; gap: 6px;">
+                <div style="color: #94a3b8; font-style: italic;">No peers connected yet</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Crosshair Customization -->
+        <div id="tab-crosshair" class="tab-content">
+          <div class="crosshair-editor-container">
+            <div class="preview-box">
+              <canvas id="crosshair-preview-canvas" width="160" height="160"></canvas>
+            </div>
+            <div class="options-group">
+              <div class="option-row">
+                <label for="crosshair-style-select">Style:</label>
+                <select id="crosshair-style-select" class="select-input">
+                  <option value="cross_dot">Crosshair + Dot</option>
+                  <option value="cross">Crosshair</option>
+                  <option value="dot">Dot Only</option>
+                  <option value="circle">Circle</option>
+                </select>
+              </div>
+              <div class="option-row">
+                <label for="crosshair-color-picker">Color:</label>
+                <input type="color" id="crosshair-color-picker" value="#00ffaa" />
+              </div>
+              <div class="option-row">
+                <label for="crosshair-size-slider">Size:</label>
+                <input type="range" id="crosshair-size-slider" min="2" max="30" value="8" />
+                <span id="crosshair-size-val">8px</span>
+              </div>
+              <div class="option-row">
+                <label for="crosshair-thickness-slider">Thickness:</label>
+                <input type="range" id="crosshair-thickness-slider" min="1" max="10" value="2" />
+                <span id="crosshair-thickness-val">2px</span>
+              </div>
+              <div class="option-row">
+                <label for="crosshair-gap-slider">Gap:</label>
+                <input type="range" id="crosshair-gap-slider" min="0" max="20" value="4" />
+                <span id="crosshair-gap-val">4px</span>
+              </div>
+              <div class="option-row">
+                <label for="crosshair-opacity-slider">Opacity:</label>
+                <input type="range" id="crosshair-opacity-slider" min="10" max="100" value="90" />
+                <span id="crosshair-opacity-val">90%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Options -->
+        <div id="tab-options" class="tab-content">
+          <div class="options-group">
+            <div class="option-row">
+              <label for="sfx-slider">Sound FX Volume:</label>
+              <input type="range" id="sfx-slider" min="0" max="100" value="80" />
+              <span id="sfx-val">80%</span>
+            </div>
+            <div class="option-row">
+              <label for="bgm-slider">Music Volume:</label>
+              <input type="range" id="bgm-slider" min="0" max="100" value="40" />
+              <span id="bgm-val">40%</span>
+            </div>
+            <div class="option-row">
+              <label for="sens-slider">Mouse Sensitivity:</label>
+              <input type="range" id="sens-slider" min="1" max="100" value="50" />
+              <span id="sens-val">1.0x</span>
+            </div>
+            <div class="option-row button-row">
+              <button id="fullscreen-btn" class="rebind-btn wide-btn">TOGGLE FULLSCREEN</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Controls & Keybindings -->
+        <div id="tab-controls" class="tab-content">
+          <div class="options-group" style="margin-bottom: 15px;">
+            <div class="option-row">
+              <label for="sprint-mode-select">Sprint Input Mode:</label>
+              <select id="sprint-mode-select" class="select-input">
+                <option value="hold">Hold Shift to Sprint</option>
+                <option value="toggle">Toggle Shift to Sprint</option>
+              </select>
+            </div>
+          </div>
+          <div class="rebind-table" id="rebind-table">
+            <!-- Dynamic Key Rows Injected by JS -->
+          </div>
+          <div id="rebind-notice" class="rebind-status hidden">Press any key to rebind...</div>
+        </div>
+
+        <!-- Tab 4: Credits -->
+        <div id="tab-credits" class="tab-content">
+          <div class="credits-card">
+            <h3>CREDITS & ACKNOWLEDGEMENTS</h3>
+            <div class="credit-row"><span class="credit-role">Game Title:</span> <span class="credit-name">God-Caliber</span></div>
+            <div class="credit-row"><span class="credit-role">Lead Developer & Designer:</span> <span class="credit-name">Benjamin Asdell</span></div>
+            <div class="credit-row"><span class="credit-role">Agentic AI Platform:</span> <span class="credit-name">Google Antigravity</span></div>
+            <div class="credit-row"><span class="credit-role">AI Language Model:</span> <span class="credit-name">Gemini 3.6 Flash</span></div>
+            <div class="credit-row"><span class="credit-role">Core 3D Engine:</span> <span class="credit-name">Three.js ES Modules</span></div>
+          </div>
+        </div>
+
+        <!-- Exit Game Button -->
+        <div class="menu-footer">
+          <button id="exit-btn" class="exit-button">EXIT GAME</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inventory Overlay (Press I or C) -->
+    <div id="inventory-overlay" class="hidden">
+      <div class="inv-modal">
+        <div class="inv-header">
+          <h2>TACTICAL INVENTORY & CRAFTING BENCH</h2>
+          <span class="inv-hint">PRESS [I] FOR STORAGE • PRESS [C] FOR CRAFTING BENCH • PRESS [ESC] TO CLOSE</span>
+        </div>
+
+        <!-- Top Navigation Tabs -->
+        <div class="inv-top-nav">
+          <button id="inv-nav-btn-storage" class="inv-nav-tab active">🎒 STORAGE & OPERATOR GEAR [I]</button>
+          <button id="inv-nav-btn-crafting" class="inv-nav-tab">⚡ CRAFTING BENCH [C]</button>
+        </div>
+
+        <!-- Tab 1: Storage & Operator Gear View -->
+        <div id="inv-view-storage" class="inv-view-content">
+          <div class="inv-body">
+            <!-- Left: Equipment / Character Paperdoll -->
+            <div class="inv-paperdoll-panel">
+              <h3>OPERATOR GEAR</h3>
+              <div class="paperdoll-silhouette">
+                <div class="operator-icon">👤</div>
+              </div>
+              <div id="paperdoll-slots">
+                <div class="eq-slot" id="eq-slot-head"><span class="eq-placeholder">HELMET</span></div>
+                <div class="eq-slot" id="eq-slot-torso"><span class="eq-placeholder">ARMOR</span></div>
+                <div class="eq-slot" id="eq-slot-legs"><span class="eq-placeholder">BOOTS</span></div>
+                <div class="eq-slot" id="eq-slot-primary"><span class="eq-placeholder">PRIMARY</span></div>
+                <div class="eq-slot" id="eq-slot-secondary"><span class="eq-placeholder">SECONDARY</span></div>
+                <div class="eq-slot" id="eq-slot-melee"><span class="eq-placeholder">MELEE</span></div>
+                <div class="eq-slot" id="eq-slot-gloves"><span class="eq-placeholder">GLOVES</span></div>
+              </div>
+            </div>
+
+            <!-- Right: 5x12 Storage Grid -->
+            <div class="inv-grid-panel">
+              <div class="inv-panel-header-row">
+                <h3>STORAGE (5 x 12 GRID)</h3>
+                <div class="inv-toolbar">
+                  <button id="inv-btn-recycle-all" class="inv-tool-btn">RECYCLE ALL</button>
+                  <button id="inv-btn-recycle-mode" class="inv-tool-btn">RECYCLE</button>
+                  <button id="inv-btn-lock-mode" class="inv-tool-btn">LOCK MODE</button>
+                </div>
+              </div>
+              <div id="inventory-grid"></div>
+
+              <!-- Recycled Dust Counters Display -->
+              <div class="dust-display">
+                <span class="dust-title">RECYCLED DUST:</span>
+                <div class="dust-counters">
+                  <span class="dust-counter normal" id="dust-normal">⚪ 0</span>
+                  <span class="dust-counter magic" id="dust-magic">🔵 0</span>
+                  <span class="dust-counter rare" id="dust-rare">🟡 0</span>
+                  <span class="dust-counter epic" id="dust-epic">🟣 0</span>
+                  <span class="dust-counter legendary" id="dust-legendary">🟠 0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Crafting Bench View -->
+        <div id="inv-view-crafting" class="inv-view-content hidden">
+          <div class="crafting-tab-layout">
+            <!-- Left: Craftable Item Blueprint Grid & Category Filters -->
+            <div class="crafting-blueprint-panel">
+              <div class="crafting-panel-header">
+                <h3>SELECT BLUEPRINT TO FORGE</h3>
+                <div id="craft-cat-filters">
+                  <button class="craft-cat-btn active" data-cat="all">ALL</button>
+                  <button class="craft-cat-btn" data-cat="weapon">WEAPONS</button>
+                  <button class="craft-cat-btn" data-cat="helmet">HELMETS</button>
+                  <button class="craft-cat-btn" data-cat="vest">VESTS</button>
+                  <button class="craft-cat-btn" data-cat="gloves">GLOVES</button>
+                  <button class="craft-cat-btn" data-cat="recipe">RECIPES</button>
+                </div>
+              </div>
+              <div id="craftable-items-grid"></div>
+            </div>
+
+            <!-- Right: Crafting Execution & Tier Upgrade Panel -->
+            <div class="crafting-action-panel">
+              <div class="crafting-panel-header">
+                <h3>FORGE & UPGRADE BENCH</h3>
+              </div>
+              
+              <!-- Forge Selection Control -->
+              <div class="crafting-section-box">
+                <div class="craft-title">FORGE SELECTED ITEM</div>
+                <div id="craft-selected-item-info">
+                  <span id="craft-selected-title">🔫 COMBAT RIFLE</span>
+                </div>
+                <div class="craft-controls-col">
+                  <label for="craft-rarity-select">TARGET RARITY:</label>
+                  <select id="craft-rarity-select" class="craft-select">
+                    <option value="normal">⚪ Normal (15 Normal Dust)</option>
+                    <option value="magic">🔵 Magic (25 Normal Dust)</option>
+                    <option value="rare">🟡 Rare (15 Magic, 10 Normal Dust)</option>
+                    <option value="epic">🟣 Epic (20 Rare, 10 Magic Dust)</option>
+                  </select>
+                  <button id="craft-forge-btn" class="craft-btn-action">FORGE ITEM</button>
+                </div>
+              </div>
+
+              <!-- Upgrade / Recipe Crafting Slot -->
+              <div class="crafting-section-box">
+                <div class="craft-title">UPGRADE TIER / RECIPE CRAFT</div>
+                <div class="craft-controls-col">
+                  <div id="craft-upgrade-slot" class="upgrade-slot-box">
+                    <span class="upgrade-placeholder-text">PLACE STORAGE ITEM OR RECIPE HERE</span>
+                  </div>
+                  <div id="craft-upgrade-info" class="upgrade-info-box hidden">
+                    <div id="upgrade-item-display-name">Item Name</div>
+                    <div id="upgrade-cost-label">Cost: --</div>
+                    <button id="craft-upgrade-btn" class="craft-btn-action">CRAFT / UPGRADE</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dust Balance Footer inside Crafting -->
+              <div class="dust-display">
+                <span class="dust-title">RECYCLED DUST BALANCES:</span>
+                <div class="dust-counters">
+                  <span class="dust-counter normal" id="craft-dust-normal">⚪ 0</span>
+                  <span class="dust-counter magic" id="craft-dust-magic">🔵 0</span>
+                  <span class="dust-counter rare" id="craft-dust-rare">🟡 0</span>
+                  <span class="dust-counter epic" id="craft-dust-epic">🟣 0</span>
+                  <span class="dust-counter legendary" id="craft-dust-legendary">🟠 0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD Overlay -->
+    <div id="hud">
+      <!-- Top Right Minimap -->
+      <div id="minimap-container"><canvas id="minimap-canvas" width="180" height="180"></canvas></div>
+
+      <!-- Top Center Wave Counter -->
+      <div id="wave-counter-card">
+        <div id="wave-title">TACTICAL PREPARATION</div>
+        <div id="wave-timer">ENEMIES ARRIVING IN 30.0s</div>
+      </div>
+
+      <!-- Sniper Scope Overlay -->
+      <div id="sniper-scope" class="hidden">
+        <div class="scope-reticle">
+          <div class="scope-crosshair-h"></div>
+          <div class="scope-crosshair-v"></div>
+          <div class="scope-circle"></div>
+        </div>
+      </div>
+
+      <!-- Interaction / Loot Prompt -->
+      <div id="interaction-prompt" class="hidden">
+        <span class="interact-key">[F]</span> <span id="interact-action">PICK UP AR-15</span>
+      </div>
+
+      <!-- Hitmarker -->
+      <div id="crosshair-container">
+        <div id="hitmarker" class="hidden">
+          <div class="hitmarker-line top-left"></div>
+          <div class="hitmarker-line top-right"></div>
+          <div class="hitmarker-line bottom-left"></div>
+          <div class="hitmarker-line bottom-right"></div>
+        </div>
+      </div>
+
+      <!-- Center Status / Reload Notice -->
+      <div id="center-notice" class="hidden">
+        <div id="reload-spinner"></div>
+        <span id="notice-text">RELOADING...</span>
+      </div>
+
+      <!-- Damage Vignette -->
+      <div id="damage-vignette"></div>
+
+      <!-- Bottom HUD Controls -->
+      <div id="hud-bottom">
+        <!-- Health Gauge -->
+        <div class="hud-card health-card">
+          <div class="hud-label">VITAL SIGNS</div>
+          <div class="health-bar-bg">
+            <div id="health-bar-fill" style="width: 100%;"></div>
+          </div>
+          <div class="health-val"><span id="hp-value">100</span> <small>HP</small></div>
+        </div>
+
+        <!-- Posture / Movement Gauge -->
+        <div class="hud-card stamina-card">
+          <div class="hud-label">MOVEMENT / POSTURE</div>
+          <div class="stamina-bar-bg">
+            <div id="stamina-bar-fill" style="width: 100%;"></div>
+          </div>
+          <div class="stamina-status" id="stamina-text">NORMAL</div>
+        </div>
+
+        <!-- Right Side: Ammo & Weapon Preview Panel Stacked -->
+        <div class="weapon-hud-stack">
+          <!-- Weapon / Ammo Counter (Moved Upward) -->
+          <div class="hud-card ammo-card">
+            <div class="hud-label">PRIMARY WEAPON</div>
+            <div class="weapon-name">AR-15 ASSAULT RIFLE</div>
+            <div class="ammo-display">
+              <span id="ammo-current">50</span>
+              <span class="ammo-divider">/</span>
+              <span id="ammo-reserve">∞</span>
+            </div>
+          </div>
+
+          <!-- Bottom Right Weapon Preview HUD -->
+          <div class="hud-card weapon-preview-card" id="weapon-preview">
+            <div class="hud-label">WEAPON LOADOUT</div>
+            <div class="weapon-slots-container">
+              <div class="weapon-slot-item active" id="slot-1-preview">
+                <span class="slot-num">SLOT 1 (ACTIVE)</span>
+                <span class="slot-weapon-title">🔫 AR-15 RIFLE</span>
+              </div>
+              <div class="weapon-slot-item stowed" id="slot-2-preview">
+                <span class="slot-num">SLOT 2 (STOWED)</span>
+                <span class="slot-weapon-title">🗡️ COMBAT KNIFE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <!-- LEADERBOARD OVERLAY -->
+    <div id="leaderboard-overlay" class="hidden">
+      <div class="leaderboard-box">
+        <div class="leaderboard-header">⚡ COMBAT SCOREBOARD</div>
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th>OPERATOR</th>
+              <th>STATUS</th>
+              <th>KILLS ⚔️</th>
+              <th>DEATHS 💀</th>
+              <th>K/D</th>
+              <th>PING 📶</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <!-- Dynamic rows populated in JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Circle Warning -->
+    <div id="circle-warning" class="hidden">
+      ⚠️ OUTSIDE SAFE ZONE — TAKING DAMAGE
+    </div>
+
+    <!-- Victory Overlay -->
+    <div id="victory-overlay" class="hidden">
+      <div class="match-result-card">
+        <h1 class="victory-title">⚡ VICTORY ⚡</h1>
+        <div id="victory-stats" class="result-stats"></div>
+        <button id="play-again-btn" class="result-btn">CONTINUE</button>
+      </div>
+    </div>
+
+    <!-- Defeat Overlay -->
+    <div id="defeat-overlay" class="hidden">
+      <div class="match-result-card">
+        <h1 class="defeat-title">💀 DEFEATED</h1>
+        <div id="defeat-stats" class="result-stats"></div>
+        <button id="play-again-defeat-btn" class="result-btn">CONTINUE</button>
+      </div>
+    </div>
+
+    <!-- Top Right Kill / Hit Feed -->
+    <div id="kill-feed"></div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

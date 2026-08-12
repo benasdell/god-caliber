@@ -57,10 +57,10 @@ The agent is responsible for fully validating every change, end-to-end, autonomo
 
 - Do not make changes before Implementation Plan is approved by the user
 - Document your changes, and update LEARNINGS.md and any other relevant documentation.
-- After user has authorized changes, utilize the `@version-controller` to submit push requests to git repository (https://github.com/benasdell/delightful-franklin)
+- After user has authorized changes, utilize the `@version-controller` to submit push requests to git repository (https://github.com/benasdell/god-caliber)
 
 
 ## Build and deploy
 
-- Run commands from `delightful-franklin` (`cd /Users/benas/Documents/Antigravity/delightful-franklin`).
-- `npm run build` — compile TypeScript to `delightful-franklin/dist/`.
+- Run commands from `god-caliber` (`cd /Users/benas/Documents/Antigravity/god-caliber`).
+- `npm run build` — compile TypeScript to `god-caliber/dist/`.

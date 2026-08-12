@@ -1,9 +1,9 @@
 # God-Caliber — Complete Game Overview
 
-> **Project Codename**: `delightful-franklin`  
+> **Project Name**: `god-caliber`  
 > **Engine**: Three.js (v0.170.0) + Vite (v5.4.0)  
 > **Genre**: Browser-based First-Person Shooter (FPS)  
-> **Current Version**: Patch 0.2.2  
+> **Current Version**: Patch 0.3.6  
 > **Author**: Built iteratively with Antigravity  
 > **Date**: August 2026
 
@@ -36,7 +36,7 @@ God-Caliber is a **single-page browser application** with no backend server. All
 ### File Structure
 
 ```
-delightful-franklin/
+god-caliber/
 ├── index.html              # Full HTML structure: game canvas, HUD, menus, inventory overlay
 ├── package.json            # Dependencies: three@^0.170.0, vite@^5.4.0
 ├── src/

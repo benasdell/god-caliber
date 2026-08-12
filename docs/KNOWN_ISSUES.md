@@ -1,6 +1,6 @@
 # God-Caliber — Known Issues, Vulnerabilities & Future Agent Warnings
 
-> **Project Codename**: `delightful-franklin`  
+> **Project Name**: `god-caliber`  
 > **Purpose**: Warn future agents and developers about known technical risks, architectural weak points, and potential bugs  
 > **Current Version**: Sub-Patch 0.3.6  
 > **Last Updated**: August 2026

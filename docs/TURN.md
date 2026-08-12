@@ -1,6 +1,6 @@
 # Metered.ca TURN Relay Configuration Guide
 
-> **Project**: God-Caliber (`delightful-franklin`)  
+> **Project**: God-Caliber (`god-caliber`)  
 > **Purpose**: Instructions for configuring your personal Metered.ca TURN credentials for WebRTC WAN & Symmetric NAT fallback relay.
 
 ---
@@ -9,7 +9,7 @@
 
 Whenever you want to activate your personal Metered.ca account (500 MB/month free tier) for TURN relay fallback:
 
-1. **Create a local `.env.local` file** in the project root (`delightful-franklin/.env.local`). Note that `.env.local` is ignored by Git to protect your credentials.
+1. **Create a local `.env.local` file** in the project root (`god-caliber/.env.local`). Note that `.env.local` is ignored by Git to protect your credentials.
 2. **Paste your account details** from Metered.ca:
    ```env
    VITE_TURN_URL=turn:global.relay.metered.ca:80

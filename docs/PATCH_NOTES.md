@@ -1,6 +1,6 @@
 # 📜 God-Caliber — Master Patch Notes & Release Changelog
 
-> **Complete Version History**: Patch 0.1.0 to Patch 0.3.9b (Hotfix)  
+> **Complete Version History**: Patch 0.1.0 to Patch 0.3.9c (Hotfix)  
 > **Engine**: Three.js (v0.170.0) + Vite (v5.4.0) + PeerJS WebRTC
 
 ---
@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [Patch 0.3 Series — Multiplayer, Vision & System Overhauls](#-patch-03-series--multiplayer-vision--system-overhauls)
+  - [Sub-Patch 0.3.9c — Hotfix: KeyF Interaction, KeyE Inventory Toggle, Scrollbar Elimination & Dynamic Grid](#sub-patch-039c--hotfix-keyf-interaction-keye-inventory-toggle-scrollbar-elimination--dynamic-grid)
   - [Sub-Patch 0.3.9b — Hotfix: KeyE Toggle Fix, Crouch to KeyC, & 10 Structure Terrain Reset](#sub-patch-039b--hotfix-keye-toggle-fix-crouch-to-keyc--10-structure-terrain-reset)
   - [Sub-Patch 0.3.9 — Inventory, Crafting, Terrain & HUD Overhaul](#sub-patch-039--inventory-crafting-terrain--hud-overhaul)
   - [Sub-Patch 0.3.8 — "Thunderbird" Modeling, Procedural Terrain & Interaction Overhaul](#sub-patch-038--thunderbird-modeling-procedural-terrain--interaction-overhaul)
@@ -29,6 +30,17 @@
 ---
 
 ## 🛡️ Patch 0.3 Series — Multiplayer, Vision & System Overhauls
+
+### Sub-Patch 0.3.9c — Hotfix: KeyF Interaction, KeyE Inventory Toggle, Scrollbar Elimination & Dynamic Grid
+*Release Date: August 2026*
+
+* **KeyF Interaction & KeyE Inventory Toggle Separation**:
+  - Restored **`KeyF`** (`interact: 'KeyF'`) exclusively for interacting with crosshair targets (loot pickup, chest opening, ladder climbing, zipline attachment).
+  - Reserved **`KeyE`** (`inventory: 'KeyE'`) exclusively for toggling the Inventory UI open and closed.
+* **Scrollbar Elimination**:
+  - Rescaled `.inv-modal` layout, paddings, gaps, and sub-panels with `overflow: hidden` to fit cleanly inside the screen without requiring a vertical scrollbar.
+* **Dynamic 5x12 Storage Grid Scaling**:
+  - Updated cell size calculation in `src/inventory-ui.js` (`cellW` and `cellH` from container width/height) and grid styling in `src/style.css` so the 5x12 storage grid scales dynamically to fit its sub-window perfectly.
 
 ### Sub-Patch 0.3.9b — Hotfix: KeyE Toggle Fix, Crouch to KeyC, & 10 Structure Terrain Reset
 *Release Date: August 2026*

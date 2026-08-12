@@ -452,30 +452,31 @@ class Game {
 
   handleInputs() {
     // 1. Inventory Toggle (Key E by default)
-    const isOpen = this.inventoryUI.isOpen;
-    const wantsClose = isOpen && (this.controls.keyState.inventory || this.controls.keyState.interact);
-
-    if (wantsClose) {
+    if (this.controls.keyState.inventory) {
       if (!this.inventoryKeyWasPressed) {
         this.inventoryKeyWasPressed = true;
-        this.interactKeyWasPressed = true;
-        this.inventoryUI.close();
         this.controls.keyState.inventory = false;
-        this.controls.keyState.interact = false;
-        this.controls.lastInventoryCloseTime = Date.now();
-        if (this.controls.blocker) {
-          this.controls.blocker.classList.add('hidden');
-        }
-        setTimeout(() => {
-          if (!this.inventoryUI.isOpen && !document.pointerLockElement) {
-            this.requestPointerLockSafe();
+        
+        if (this.inventoryUI.isOpen) {
+          this.inventoryUI.close();
+          this.controls.lastInventoryCloseTime = Date.now();
+          if (this.controls.blocker) {
+            this.controls.blocker.classList.add('hidden');
           }
-        }, 80);
+          setTimeout(() => {
+            if (!this.inventoryUI.isOpen && !document.pointerLockElement) {
+              this.requestPointerLockSafe();
+            }
+          }, 80);
+        } else {
+          const timeSinceClose = Date.now() - (this.controls.lastInventoryCloseTime || 0);
+          if (timeSinceClose >= 250) {
+            this.inventoryUI.toggle();
+          }
+        }
       }
     } else {
-      if (!this.controls.keyState.inventory && !this.controls.keyState.interact) {
-        this.inventoryKeyWasPressed = false;
-      }
+      this.inventoryKeyWasPressed = false;
     }
 
     // 2. Quick Melee (Key X)
@@ -515,16 +516,11 @@ class Game {
         this.switchWeaponSlot('secondary');
       }
 
-      // 5. Crosshair Raycast Interaction / Inventory Open (Key E)
-      if (this.controls.keyState.interact || this.controls.keyState.inventory) {
-        if (!this.interactKeyWasPressed && !this.inventoryKeyWasPressed) {
-          const timeSinceClose = Date.now() - (this.controls.lastInventoryCloseTime || 0);
-          if (timeSinceClose < 300) {
-            return;
-          }
-
+      // 5. Crosshair Raycast World Object Interaction (Key F by default)
+      if (this.controls.keyState.interact) {
+        if (!this.interactKeyWasPressed) {
           this.interactKeyWasPressed = true;
-          this.inventoryKeyWasPressed = true;
+          this.controls.keyState.interact = false;
 
           const activeTarget = this.getActiveInteraction();
 
@@ -574,11 +570,6 @@ class Game {
                 this.player.attachLadder(terrainObj.data);
                 this.ui.addKillFeed("🪜 CLIMBING LADDER");
               }
-            }
-          } else {
-            // No active interactable target under crosshair: open Inventory UI!
-            if (!this.inventoryUI.isOpen) {
-              this.inventoryUI.toggle();
             }
           }
         }

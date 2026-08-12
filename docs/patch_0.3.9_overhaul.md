@@ -1,15 +1,15 @@
-# Sub-Patch 0.3.9 & 0.3.9b — "Inventory & Terrain Overhaul" Technical Specification
+# Sub-Patch 0.3.9, 0.3.9b, & 0.3.9c — "Inventory & Terrain Overhaul" Technical Specification
 
-> **Patch Name**: Sub-Patch 0.3.9 & 0.3.9b Hotfix (Inventory, Crafting, Procedural Terrain & Keybindings)  
-> **Target Release**: Patch 0.3.9b  
-> **Focus**: KeyE Toggle Latch Fix, Crouch Binding to KeyC, Fresh Procedural Terrain Reset with 10 Structure Types, & 1000m Circle  
+> **Patch Name**: Sub-Patch 0.3.9c Hotfix (KeyF Interaction, KeyE Inventory Toggle, Scrollbar Elimination, & Dynamic 5x12 Grid Scaling)  
+> **Target Release**: Patch 0.3.9c  
+> **Focus**: Separated KeyF Interaction & KeyE Inventory Toggle, Zero-Scrollbar Modal Scaling, & Responsive 5x12 Storage Grid  
 > **Date**: August 2026
 
 ---
 
 ## 1. Executive Summary
 
-Sub-Patch 0.3.9b provides a hotfix and fresh terrain generation reset for God-Caliber. It fixes the `KeyE` inventory toggle multi-frame key repetition latch bug so `KeyE` opens and keeps the unified Inventory UI open reliably, rebinds default crouch/slide to **`KeyC`**, culls all legacy terrain artifacts, and generates 10 simple procedural structure types dynamically distributed across the **1000x1000m** Testing Arena!
+Sub-Patch 0.3.9c delivers a hotfix for God-Caliber. It restores **`KeyF`** as the dedicated world object interact key (for picking up ground items, opening chests, climbing ladders, and attaching to ziplines) while reserving **`KeyE`** exclusively for opening and closing the Inventory UI. It also rescales the Inventory UI modal layout to eliminate all scrollbars, and makes the 5x12 storage grid scale dynamically to fit its sub-window perfectly.
 
 ---
 

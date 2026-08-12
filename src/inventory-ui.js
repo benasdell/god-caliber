@@ -128,17 +128,18 @@ export class InventoryUI {
     const existingItems = this.gridContainerEl.querySelectorAll('.inv-item');
     existingItems.forEach(el => el.remove());
 
-    const CELL_SIZE = 50; // 50px grid spacing
+    const cellW = (this.gridContainerEl ? this.gridContainerEl.clientWidth : 600) / 12 || 50;
+    const cellH = (this.gridContainerEl ? this.gridContainerEl.clientHeight : 250) / 5 || 50;
 
     // Render items currently inside 5x12 grid
     this.inv.items.forEach(item => {
       const itemEl = document.createElement('div');
       itemEl.className = 'inv-item';
       itemEl.dataset.itemId = item.id;
-      itemEl.style.width = `${item.width * CELL_SIZE - 4}px`;
-      itemEl.style.height = `${item.height * CELL_SIZE - 4}px`;
-      itemEl.style.left = `${item.col * CELL_SIZE + 2}px`;
-      itemEl.style.top = `${item.row * CELL_SIZE + 2}px`;
+      itemEl.style.width = `${item.width * cellW - 4}px`;
+      itemEl.style.height = `${item.height * cellH - 4}px`;
+      itemEl.style.left = `${item.col * cellW + 2}px`;
+      itemEl.style.top = `${item.row * cellH + 2}px`;
       itemEl.style.background = item.color;
       itemEl.style.borderColor = item.borderColor;
 
@@ -355,10 +356,13 @@ export class InventoryUI {
   }
 
   createDragGhost(e, item) {
+    const cellW = (this.gridContainerEl ? this.gridContainerEl.clientWidth : 600) / 12 || 50;
+    const cellH = (this.gridContainerEl ? this.gridContainerEl.clientHeight : 250) / 5 || 50;
+
     this.dragGhostEl = document.createElement('div');
     this.dragGhostEl.className = 'inv-item-ghost';
-    this.dragGhostEl.style.width = `${item.width * 50 - 4}px`;
-    this.dragGhostEl.style.height = `${item.height * 50 - 4}px`;
+    this.dragGhostEl.style.width = `${item.width * cellW - 4}px`;
+    this.dragGhostEl.style.height = `${item.height * cellH - 4}px`;
     this.dragGhostEl.style.background = item.color;
     this.dragGhostEl.style.borderColor = item.borderColor;
     this.dragGhostEl.innerHTML = `
@@ -436,11 +440,14 @@ export class InventoryUI {
         e.clientY >= gridRect.top &&
         e.clientY <= gridRect.bottom
       ) {
-        const relativeX = e.clientX - gridRect.left - this.dragOffset.x + 25;
-        const relativeY = e.clientY - gridRect.top - this.dragOffset.y + 25;
+        const cellW = (this.gridContainerEl.clientWidth / 12) || 50;
+        const cellH = (this.gridContainerEl.clientHeight / 5) || 50;
 
-        const targetCol = Math.max(0, Math.min(this.inv.cols - this.draggedItem.width, Math.floor(relativeX / 50)));
-        const targetRow = Math.max(0, Math.min(this.inv.rows - this.draggedItem.height, Math.floor(relativeY / 50)));
+        const relativeX = e.clientX - gridRect.left - this.dragOffset.x + (cellW / 2);
+        const relativeY = e.clientY - gridRect.top - this.dragOffset.y + (cellH / 2);
+
+        const targetCol = Math.max(0, Math.min(this.inv.cols - this.draggedItem.width, Math.floor(relativeX / cellW)));
+        const targetRow = Math.max(0, Math.min(this.inv.rows - this.draggedItem.height, Math.floor(relativeY / cellH)));
 
         if (this.isDraggingFromEquipped) {
           // Try to place from equipped slot into grid

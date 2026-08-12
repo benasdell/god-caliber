@@ -73,9 +73,16 @@
   Mapping dynamic world entities onto a 2D HUD minimap MUST convert world coordinates relative to the player's world position: `relX = x - playerPos.x`, `relZ = z - playerPos.z`. Anchoring the player chevron at canvas center `(cx, cy)` while transforming all external positions guarantees the player never leaves the minimap frame regardless of map dimensions.
 - **Unified Full-Screen Overlay Navigation**:
   Do not split core player management workflows into disconnected tabs with duplicate rendering code. Merging inventory storage and crafting into a single unified overlay simplifies keybindings (`KeyE` toggle) and eliminates tab state sync bugs.
-- **Auto-Equipping Unequipped Gear Slots**:
+- **Auto-Equip Unequipped Gear Slots**:
   When picking up items, check if the designated slot (`primary`, `secondary`, `head`, `vest`, `gloves`, `boots`) is unequipped (`equipment[slot] === null`). Auto-equipping directly improves looting pacing and removes manual inventory cluttering.
 
+---
 
+## 8. Action Keybinding & UI Scale Invariants (Sub-Patch 0.3.9c Hotfix)
 
-
+- **Separation of Interaction (KeyF) and UI Toggles (KeyE)**:
+  Never overload world object interaction (`KeyF`) with full-screen UI toggles (`KeyE`). When interaction falls back to opening UI when no target is present under the crosshair reticle, players attempting to grab items or attach to ziplines while moving will repeatedly trigger unwanted full-screen UI popups.
+- **Dynamic Sub-Window Grid Scaling**:
+  Hardcoding fixed pixel dimensions for UI grid containers (e.g. `600px x 250px`) causes misalignment when layout containers scale across different viewport resolutions. Compute cell dimensions dynamically (`cellW = container.clientWidth / cols`, `cellH = container.clientHeight / rows`) in item rendering and drag-and-drop calculation loops.
+- **Scrollbar Elimination via Flex Bounds & `overflow: hidden`**:
+  To guarantee zero scrollbars on full-screen modal overlays across all screen resolutions, specify constrained element heights (`height: min(92vh, 850px);`), compact paddings/gaps, and explicit `overflow: hidden` boundaries on container modals.

@@ -20,7 +20,7 @@ export class Controls {
       reload: 'KeyR',
       melee: 'KeyX',
       inventory: 'KeyE',
-      interact: 'KeyE',
+      interact: 'KeyF',
       drop: 'KeyQ',
       slot1: 'Digit1',
       slot2: 'Digit2',
@@ -86,13 +86,13 @@ export class Controls {
         }
       }
 
-      // Migration: Auto-upgrade legacy keybindings saved in browser localStorage to current defaults
+      // Migration: Ensure interact defaults to KeyF and inventory to KeyE cleanly
       let needsSave = false;
-      if (this.bindings.interact === 'KeyF') {
-        this.bindings.interact = 'KeyE';
+      if (this.bindings.interact === 'KeyE') {
+        this.bindings.interact = 'KeyF';
         needsSave = true;
       }
-      if (this.bindings.inventory === 'KeyF' || this.bindings.inventory === 'KeyI' || this.bindings.inventory === 'KeyC') {
+      if (this.bindings.inventory === 'KeyF') {
         this.bindings.inventory = 'KeyE';
         needsSave = true;
       }

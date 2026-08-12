@@ -644,43 +644,43 @@ html, body {
   border: 1px solid var(--primary-cyan);
   box-shadow: 0 0 50px rgba(0, 240, 255, 0.35);
   border-radius: 16px;
-  padding: 20px 24px;
+  padding: 12px 18px;
   width: 94vw;
-  height: 92vh;
-  max-width: 1600px;
-  max-height: 1000px;
+  height: min(92vh, 850px);
+  max-width: 1500px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
+  gap: 8px;
+  overflow: hidden; /* Guaranteed no scrollbar */
 }
 
 .inv-unified-layout {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
   flex: 1;
+  min-height: 0;
 }
 
 .inv-top-section {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   align-items: stretch;
 }
 
 .inv-bottom-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  padding: 14px;
+  padding: 10px 14px;
 }
 
 .crafting-unified-layout {
   display: flex;
-  gap: 20px;
+  gap: 16px;
 }
 
 .inv-header {
@@ -688,27 +688,27 @@ html, body {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 12px;
+  padding-bottom: 6px;
 }
 
 .inv-header h2 {
   font-family: var(--font-heading);
-  font-size: 24px;
+  font-size: 18px;
   color: var(--primary-cyan);
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   margin: 0;
 }
 
 .inv-hint {
   font-family: var(--font-heading);
-  font-size: 12px;
+  font-size: 11px;
   color: #94a3b8;
   letter-spacing: 1px;
 }
 
 .inv-body {
   display: flex;
-  gap: 28px;
+  gap: 20px;
   align-items: stretch;
 }
 
@@ -716,26 +716,26 @@ html, body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 /* --- PAPERDOLL GEAR PANEL --- */
 .inv-paperdoll-panel {
-  width: 320px;
+  width: 270px;
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-  padding: 20px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .inv-paperdoll-panel h3, .inv-grid-panel h3 {
   font-family: var(--font-heading);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
   color: #cbd5e1;
   letter-spacing: 1.5px;
@@ -744,36 +744,36 @@ html, body {
 }
 
 .paperdoll-silhouette {
-  width: 110px;
-  height: 130px;
+  width: 70px;
+  height: 80px;
   background: rgba(15, 23, 42, 0.85);
   border: 1px dashed rgba(0, 240, 255, 0.4);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 64px;
+  font-size: 40px;
   box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.1);
 }
 
 #paperdoll-slots {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 6px;
   width: 100%;
 }
 
 .eq-slot {
-  height: 60px;
+  height: 44px;
   background: rgba(15, 23, 42, 0.85);
   border: 1px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   font-family: var(--font-heading);
-  font-size: 10px;
+  font-size: 9px;
   color: #64748b;
   transition: all 0.2s ease;
 }
@@ -784,8 +784,8 @@ html, body {
   box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
 }
 
-.eq-icon { font-size: 18px; }
-.eq-name { font-size: 9px; color: #ffffff; font-weight: 700; margin-top: 2px; }
+.eq-icon { font-size: 16px; }
+.eq-name { font-size: 8px; color: #ffffff; font-weight: 700; margin-top: 1px; }
 
 /* --- INVENTORY TOOLBAR & PANEL ROW --- */
 .inv-panel-header-row {
@@ -797,7 +797,7 @@ html, body {
 
 .inv-toolbar {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .inv-tool-btn {
@@ -805,9 +805,9 @@ html, body {
   border: 1px solid rgba(0, 240, 255, 0.4);
   color: #00f0ff;
   font-family: var(--font-heading);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
   letter-spacing: 0.5px;
@@ -849,13 +849,13 @@ html, body {
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 6px;
-  padding: 8px 12px;
-  margin-top: 4px;
+  padding: 4px 10px;
+  margin-top: 2px;
 }
 
 .dust-title {
   font-family: var(--font-heading);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: #94a3b8;
   letter-spacing: 0.5px;
@@ -863,12 +863,12 @@ html, body {
 
 .dust-counters {
   display: flex;
-  gap: 16px;
+  gap: 12px;
 }
 
 .dust-counter {
   font-family: var(--font-heading);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 800;
   color: #ffffff;
   text-shadow: 0 0 4px rgba(255,255,255,0.2);
@@ -883,9 +883,9 @@ html, body {
 /* --- ITEM LOCK INDICATOR --- */
 .inv-item-lock-icon {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  font-size: 11px;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
   color: #ef4444;
   text-shadow: 0 0 4px #ef4444;
   z-index: 20;
@@ -905,19 +905,20 @@ html, body {
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  padding: 16px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 #inventory-grid {
   position: relative;
-  width: 600px; /* 12 cols * 50px */
-  height: 250px; /* 5 rows * 50px */
+  width: 100%;
+  max-width: 720px;
+  height: 240px;
   display: grid;
-  grid-template-columns: repeat(12, 50px);
-  grid-template-rows: repeat(5, 50px);
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(5, 1fr);
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(0, 240, 255, 0.2);
   border-radius: 8px;
@@ -925,8 +926,8 @@ html, body {
 }
 
 .inv-cell {
-  width: 50px;
-  height: 50px;
+  width: 100%;
+  height: 100%;
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 

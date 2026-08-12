@@ -99,6 +99,17 @@ export class InventoryManager {
   }
 
   initDefaultItems() {
+    // Reset all equipment slots to null on match init / restart
+    this.equipment = {
+      head: null,
+      torso: null,
+      legs: null,
+      gloves: null,
+      primary: null,
+      secondary: null,
+      melee: null,
+    };
+
     // Generate default equipped primary & melee weapons as NORMAL (no modifiers)
     const pistol = this.generateRandomItem('weapon_pistol', 'normal');
     const knife = this.generateRandomItem('weapon_knife', 'normal');

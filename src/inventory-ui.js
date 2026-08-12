@@ -725,12 +725,18 @@ export class InventoryUI {
 
   autoEquipItem(item) {
     let slotName = item.type;
-    if (slotName === 'primary') {
-      const activeSlot = (window.gameInstance ? window.gameInstance.activeWeaponSlot : null) || 'primary';
-      if (this.inv.equipment.primary !== null && this.inv.equipment.secondary === null) {
-        slotName = 'secondary';
+    if (slotName === 'primary' || slotName === 'weapon' || (item.baseId && item.baseId.startsWith('weapon_'))) {
+      if (item.baseId?.includes('knife') || item.baseId?.includes('melee') || slotName === 'melee') {
+        slotName = 'melee';
       } else {
-        slotName = activeSlot;
+        if (this.inv.equipment.primary === null) {
+          slotName = 'primary';
+        } else if (this.inv.equipment.secondary === null) {
+          slotName = 'secondary';
+        } else {
+          const activeSlot = (window.gameInstance ? window.gameInstance.activeWeaponSlot : null) || 'primary';
+          slotName = activeSlot;
+        }
       }
     }
     if (!this.inv.equipment.hasOwnProperty(slotName)) return;
@@ -797,13 +803,20 @@ export class InventoryUI {
     if (!item) return null;
     const type = item.type;
     const baseId = item.baseId || '';
-    if (type === 'weapon' || baseId.startsWith('weapon_')) {
-      if (baseId.includes('melee') || baseId.includes('sword') || baseId.includes('axe') || baseId.includes('blade')) {
+    if (type === 'weapon' || type === 'primary' || baseId.startsWith('weapon_')) {
+      if (baseId.includes('melee') || baseId.includes('knife') || baseId.includes('sword') || baseId.includes('axe') || baseId.includes('blade') || type === 'melee') {
         return 'melee';
       }
-      return 'primary';
+      if (this.inv.equipment.primary === null) {
+        return 'primary';
+      }
+      if (this.inv.equipment.secondary === null) {
+        return 'secondary';
+      }
+      const activeSlot = (window.gameInstance ? window.gameInstance.activeWeaponSlot : null) || 'primary';
+      return activeSlot;
     }
-    if (type === 'helmet' || baseId.includes('helmet')) return 'head';
+    if (type === 'helmet' || type === 'head' || baseId.includes('helmet')) return 'head';
     if (type === 'vest' || type === 'torso' || baseId.includes('vest')) return 'torso';
     if (type === 'gloves' || baseId.includes('gloves')) return 'gloves';
     if (type === 'boots' || type === 'legs' || baseId.includes('boots')) return 'legs';

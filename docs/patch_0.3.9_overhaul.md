@@ -1,15 +1,15 @@
-# Sub-Patch 0.3.9, 0.3.9b, & 0.3.9c — "Inventory & Terrain Overhaul" Technical Specification
+# Sub-Patch 0.3.9, 0.3.9b, 0.3.9c, & 0.3.9d — "Inventory & Terrain Overhaul" Technical Specification
 
-> **Patch Name**: Sub-Patch 0.3.9c Hotfix (KeyF Interaction, KeyE Inventory Toggle, Scrollbar Elimination, & Dynamic 5x12 Grid Scaling)  
-> **Target Release**: Patch 0.3.9c  
-> **Focus**: Separated KeyF Interaction & KeyE Inventory Toggle, Zero-Scrollbar Modal Scaling, & Responsive 5x12 Storage Grid  
+> **Patch Name**: Sub-Patch 0.3.9d Hotfix (Full Gear Reset on Match Restart & Secondary Weapon Slot Auto-Equip)  
+> **Target Release**: Patch 0.3.9d  
+> **Focus**: Match Restart Gear Reset & Smart Secondary Weapon Slot Auto-Equip  
 > **Date**: August 2026
 
 ---
 
 ## 1. Executive Summary
 
-Sub-Patch 0.3.9c delivers a hotfix for God-Caliber. It restores **`KeyF`** as the dedicated world object interact key (for picking up ground items, opening chests, climbing ladders, and attaching to ziplines) while reserving **`KeyE`** exclusively for opening and closing the Inventory UI. It also rescales the Inventory UI modal layout to eliminate all scrollbars, and makes the 5x12 storage grid scale dynamically to fit its sub-window perfectly.
+Sub-Patch 0.3.9d delivers a hotfix for God-Caliber. It fixes equipment state retention across match restarts by explicitly resetting all 7 equipment slots (`head`, `torso`, `legs`, `gloves`, `primary`, `secondary`, `melee`) to null before equipping starting defaults (P-57 Pistol + Combat Knife). It also resolves weapon auto-equip logic so picking up a second weapon automatically equips into the `secondary` slot whenever `secondary` is empty, regardless of active slot.
 
 ---
 

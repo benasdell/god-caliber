@@ -86,3 +86,12 @@
   Hardcoding fixed pixel dimensions for UI grid containers (e.g. `600px x 250px`) causes misalignment when layout containers scale across different viewport resolutions. Compute cell dimensions dynamically (`cellW = container.clientWidth / cols`, `cellH = container.clientHeight / rows`) in item rendering and drag-and-drop calculation loops.
 - **Scrollbar Elimination via Flex Bounds & `overflow: hidden`**:
   To guarantee zero scrollbars on full-screen modal overlays across all screen resolutions, specify constrained element heights (`height: min(92vh, 850px);`), compact paddings/gaps, and explicit `overflow: hidden` boundaries on container modals.
+
+---
+
+## 9. Equipment Reset & Multi-Weapon Auto-Equip Invariants (Sub-Patch 0.3.9d Hotfix)
+
+- **Complete Equipment Reset on Match Start**:
+  When resetting player state for a new match round (`startBRMatch()`), never rely on re-initializing only default weapon slots. Explicitly clear all equipment slots (`head`, `torso`, `legs`, `gloves`, `primary`, `secondary`, `melee`) to `null` before populating starting gear. Otherwise, armor, boots, gloves, and secondary weapons equipped in previous rounds persist across match restarts.
+- **Sequential Weapon Slot Resolution for Auto-Equip**:
+  When evaluating equipment target slots for non-melee weapons (`getEquipmentSlotForItem`), do NOT hardcode `'primary'`. Check if `primary` is empty (`null`); if occupied, check if `secondary` is empty (`null`). Only if both weapon slots are full should it fallback to the currently active weapon slot. This guarantees that picking up a second weapon automatically equips into `secondary` slot whenever `secondary` is unequipped.

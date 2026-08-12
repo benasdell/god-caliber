@@ -1,6 +1,6 @@
 # 📜 God-Caliber — Master Patch Notes & Release Changelog
 
-> **Complete Version History**: Patch 0.1.0 to Patch 0.3.9c (Hotfix)  
+> **Complete Version History**: Patch 0.1.0 to Patch 0.3.9d (Hotfix)  
 > **Engine**: Three.js (v0.170.0) + Vite (v5.4.0) + PeerJS WebRTC
 
 ---
@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [Patch 0.3 Series — Multiplayer, Vision & System Overhauls](#-patch-03-series--multiplayer-vision--system-overhauls)
+  - [Sub-Patch 0.3.9d — Hotfix: Match Restart Gear Reset & Secondary Weapon Auto-Equip](#sub-patch-039d--hotfix-match-restart-gear-reset--secondary-weapon-auto-equip)
   - [Sub-Patch 0.3.9c — Hotfix: KeyF Interaction, KeyE Inventory Toggle, Scrollbar Elimination & Dynamic Grid](#sub-patch-039c--hotfix-keyf-interaction-keye-inventory-toggle-scrollbar-elimination--dynamic-grid)
   - [Sub-Patch 0.3.9b — Hotfix: KeyE Toggle Fix, Crouch to KeyC, & 10 Structure Terrain Reset](#sub-patch-039b--hotfix-keye-toggle-fix-crouch-to-keyc--10-structure-terrain-reset)
   - [Sub-Patch 0.3.9 — Inventory, Crafting, Terrain & HUD Overhaul](#sub-patch-039--inventory-crafting-terrain--hud-overhaul)
@@ -30,6 +31,14 @@
 ---
 
 ## 🛡️ Patch 0.3 Series — Multiplayer, Vision & System Overhauls
+
+### Sub-Patch 0.3.9d — Hotfix: Match Restart Gear Reset & Secondary Weapon Auto-Equip
+*Release Date: August 2026*
+
+* **Match Restart Equipment Reset**:
+  - Fixed equipment state retention across match restarts in `src/inventory.js` (`initDefaultItems()`). All 7 equipment slots (`head`, `torso`, `legs`, `gloves`, `primary`, `secondary`, `melee`) are now explicitly reset to `null` before equipping default starting weapons (P-57 Pistol + Combat Knife).
+* **Smart Secondary Weapon Auto-Equip**:
+  - Resolved `getEquipmentSlotForItem(item)` and `autoEquipItem(item)` in `src/inventory-ui.js` so picking up a second weapon automatically equips into the `secondary` weapon slot whenever `secondary` is empty, regardless of whether Slot 1 or Slot 2 is currently active.
 
 ### Sub-Patch 0.3.9c — Hotfix: KeyF Interaction, KeyE Inventory Toggle, Scrollbar Elimination & Dynamic Grid
 *Release Date: August 2026*

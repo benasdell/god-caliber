@@ -529,7 +529,6 @@ export class UIManager {
       { id: 'drop', label: 'Drop Active Weapon' },
       { id: 'slot1', label: 'Equip Weapon Slot 1' },
       { id: 'slot2', label: 'Equip Weapon Slot 2' },
-      { id: 'crafting', label: 'Open Crafting Bench (C)' },
     ];
 
     actions.forEach(action => {

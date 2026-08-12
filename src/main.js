@@ -451,16 +451,15 @@ class Game {
   }
 
   handleInputs() {
-    // 1. Inventory Toggle (Key E, Key I, or Escape)
+    // 1. Inventory Toggle (Key E by default)
     const isOpen = this.inventoryUI.isOpen;
-    const wantsClose = isOpen && (this.controls.keyState.escape || this.controls.keyState.inventory || this.controls.keyState.interact);
+    const wantsClose = isOpen && (this.controls.keyState.inventory || this.controls.keyState.interact);
 
     if (wantsClose) {
       if (!this.inventoryKeyWasPressed) {
         this.inventoryKeyWasPressed = true;
         this.interactKeyWasPressed = true;
         this.inventoryUI.close();
-        this.controls.keyState.escape = false;
         this.controls.keyState.inventory = false;
         this.controls.keyState.interact = false;
         this.controls.lastInventoryCloseTime = Date.now();
@@ -474,7 +473,7 @@ class Game {
         }, 80);
       }
     } else {
-      if (!this.controls.keyState.inventory && !this.controls.keyState.interact && !this.controls.keyState.escape) {
+      if (!this.controls.keyState.inventory && !this.controls.keyState.interact) {
         this.inventoryKeyWasPressed = false;
       }
     }

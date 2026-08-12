@@ -24,7 +24,6 @@ export class Controls {
       drop: 'KeyQ',
       slot1: 'Digit1',
       slot2: 'Digit2',
-      crafting: 'KeyI',
     };
 
     this.sprintMode = 'hold'; // 'hold' | 'toggle'
@@ -56,7 +55,6 @@ export class Controls {
       drop: false,
       slot1: false,
       slot2: false,
-      crafting: false,
       escape: false,
       tab: false,
     };
@@ -87,6 +85,26 @@ export class Controls {
           }
         }
       }
+
+      // Migration: Auto-upgrade legacy keybindings saved in browser localStorage to current defaults
+      let needsSave = false;
+      if (this.bindings.interact === 'KeyF') {
+        this.bindings.interact = 'KeyE';
+        needsSave = true;
+      }
+      if (this.bindings.inventory === 'KeyF' || this.bindings.inventory === 'KeyI' || this.bindings.inventory === 'KeyC') {
+        this.bindings.inventory = 'KeyE';
+        needsSave = true;
+      }
+      if (this.bindings.crouch === 'ControlLeft') {
+        this.bindings.crouch = 'KeyC';
+        needsSave = true;
+      }
+
+      if (needsSave) {
+        this.saveBindings();
+      }
+
       const profileSaved = localStorage.getItem('cyberstrike_player_profile');
       if (profileSaved) {
         const parsed = JSON.parse(profileSaved);
@@ -207,25 +225,6 @@ export class Controls {
       const timeSinceInvClose = Date.now() - this.lastInventoryCloseTime;
 
       if (event.code === 'Escape') {
-        const inventoryOverlay = document.getElementById('inventory-overlay');
-        const isInventoryOpen = inventoryOverlay && !inventoryOverlay.classList.contains('hidden');
-
-        if (isInventoryOpen) {
-          event.preventDefault();
-          event.stopPropagation();
-          this.lastInventoryCloseTime = Date.now();
-          if (window.gameInstance && window.gameInstance.inventoryUI) {
-            window.gameInstance.inventoryUI.close();
-          }
-          if (this.blocker) this.blocker.classList.add('hidden');
-          setTimeout(() => {
-            if (window.gameInstance && !window.gameInstance.inventoryUI.isOpen && !document.pointerLockElement) {
-              window.gameInstance.requestPointerLockSafe();
-            }
-          }, 80);
-          return;
-        }
-
         if (!this.isLocked) {
           // If in Pause Menu, ESC unpauses and returns to gameplay
           event.preventDefault();
@@ -258,12 +257,10 @@ export class Controls {
       }
 
       if (!this.isLocked) {
-        // Allow inventory, crafting, escape, and tab keys even when pointer is not locked
+        // When pointer lock is inactive (e.g. inventory open), only pass the inventory toggle binding through
         if (
           event.code === this.bindings.inventory ||
-          event.code === this.bindings.crafting ||
-          event.code === 'Escape' ||
-          event.code === 'Tab'
+          event.code === this.bindings.interact
         ) {
           this.updateKeyState(event.code, true);
         }
@@ -310,7 +307,6 @@ export class Controls {
     if (code === this.bindings.drop) this.keyState.drop = isPressed;
     if (code === this.bindings.slot1 || code === 'Digit1') this.keyState.slot1 = isPressed;
     if (code === this.bindings.slot2 || code === 'Digit2') this.keyState.slot2 = isPressed;
-    if (code === this.bindings.crafting) this.keyState.crafting = isPressed;
   }
 
   getMouseDelta() {

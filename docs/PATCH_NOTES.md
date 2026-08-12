@@ -1,6 +1,6 @@
 # 📜 God-Caliber — Master Patch Notes & Release Changelog
 
-> **Complete Version History**: Patch 0.1.0 to Patch 0.3.9 (Overhaul)  
+> **Complete Version History**: Patch 0.1.0 to Patch 0.3.9b (Hotfix)  
 > **Engine**: Three.js (v0.170.0) + Vite (v5.4.0) + PeerJS WebRTC
 
 ---
@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [Patch 0.3 Series — Multiplayer, Vision & System Overhauls](#-patch-03-series--multiplayer-vision--system-overhauls)
+  - [Sub-Patch 0.3.9b — Hotfix: KeyE Toggle Fix, Crouch to KeyC, & 10 Structure Terrain Reset](#sub-patch-039b--hotfix-keye-toggle-fix-crouch-to-keyc--10-structure-terrain-reset)
   - [Sub-Patch 0.3.9 — Inventory, Crafting, Terrain & HUD Overhaul](#sub-patch-039--inventory-crafting-terrain--hud-overhaul)
   - [Sub-Patch 0.3.8 — "Thunderbird" Modeling, Procedural Terrain & Interaction Overhaul](#sub-patch-038--thunderbird-modeling-procedural-terrain--interaction-overhaul)
   - [Sub-Patch 0.3.7 — "Bastion" Security Hardening & Performance Overhaul](#sub-patch-037--bastion-security-hardening--performance-overhaul)
@@ -28,6 +29,18 @@
 ---
 
 ## 🛡️ Patch 0.3 Series — Multiplayer, Vision & System Overhauls
+
+### Sub-Patch 0.3.9b — Hotfix: KeyE Toggle Fix, Crouch to KeyC, & 10 Structure Terrain Reset
+*Release Date: August 2026*
+
+* **KeyE Toggle Latch Fix**:
+  - Resolved multi-frame key repetition latch bug on `KeyE` with a 300ms debounce buffer so pressing `KeyE` opens and keeps the unified Inventory UI open reliably.
+* **Default Crouch Keybinding to `KeyC`**:
+  - Set default crouch/slide keybinding to **`KeyC`** (`crouch: 'KeyC'`).
+* **Fresh Procedural Terrain Reset & 10 Structure Types**:
+  - Removed all legacy platforms, pillars, monorail hubs, and legacy ziplines.
+  - Built 10 simple procedural structure generators: single-level houses, two-story buildings with internal 45° ramp staircases, elevated sniper towers with ladders, pillbox bunkers, straight cover walls, L-corner barriers, cargo container clusters, catwalk bridges, monolithic pillars, and open warehouses.
+  - Scattered ~50 structure instances naturally across the 1000x1000m Testing Arena with a 35m minimum clearance buffer.
 
 ### Sub-Patch 0.3.9 — Inventory, Crafting, Terrain & HUD Overhaul
 *Release Date: August 2026*

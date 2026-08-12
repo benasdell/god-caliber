@@ -51,135 +51,45 @@ export function createTriangularRampGeometry(width, height, length) {
   return geom;
 }
 
-// "Thunderbird 1000m Sector Arena" Modular Map Configuration — 1000x1000m Battle Royale World
+// Modular 1000x1000m Procedural Map Configuration
 export const TESTING_ARENA_CONFIG = {
   id: "testing_arena",
   name: "Thunderbird 1000m Sector Arena",
 
-  // 1. Ground & Perimeter Walls (1000x1000m)
+  // Ground & 18m High Perimeter Walls (1000x1000m)
   ground: { width: 1000, length: 1000 },
   perimeterWalls: { height: 18, thickness: 3 },
-
-  // 2. Central & POI Platforms
-  platforms: [
-    // POI 1: Sector Zero Citadel (Center x: 0, z: 0)
-    { id: 'citadel_central_hub', x: 0, y: 3.0, z: 0, width: 48, height: 6, length: 48, color: 0x1e293b },
-    { id: 'citadel_upper_deck', x: 0, y: 9.0, z: 0, width: 32, height: 6, length: 32, color: 0x0f172a },
-
-    // POI 2: Outpost Omega Pillboxes (North-East x: 300, z: -300)
-    { id: 'outpost_bunker_base', x: 300, y: 2.0, z: -300, width: 40, height: 4, length: 40, color: 0x1e293b },
-
-    // POI 3: Industrial Complex (North-West x: -300, z: -300)
-    { id: 'industrial_plant_slab', x: -300, y: 1.5, z: -300, width: 56, height: 3, length: 40, color: 0x334155 },
-
-    // POI 4: Quantum Core Anomalous Zone (South-West x: -300, z: 300)
-    { id: 'quantum_monolith_base', x: -300, y: 5.0, z: 300, width: 24, height: 10, length: 24, color: 0x0f172a },
-
-    // POI 5: Transport Monorail Hub (South-East x: 300, z: 300)
-    { id: 'monorail_hub_deck', x: 300, y: 8.0, z: 300, width: 44, height: 4, length: 28, color: 0x1e293b },
-  ],
-
-  // 3. Buildings & Modular Architecture
-  singleLevelBuildings: [
-    { id: 'building_single_nw', x: -280, y: 3.0, z: -280, width: 16, height: 4, length: 20 },
-    { id: 'building_single_se', x: 280, y: 0, z: 280, width: 18, height: 4, length: 18 },
-  ],
-
-  twoLevelBuildings: [
-    { id: 'building_two_level_ind', x: -320, y: 0, z: -300, width: 24, height: 8, length: 24 },
-    { id: 'building_two_level_citadel', x: 60, y: 0, z: -60, width: 20, height: 8, length: 20 },
-  ],
-
-  movingPlatforms: [
-    { id: 'elevator_monorail', x: 300, baseY: 2.0, z: 300, width: 6, height: 0.4, length: 6, travelDistance: 6.0, speed: 1.2 },
-    { id: 'elevator_citadel', x: 0, baseY: 3.0, z: 26, width: 5, height: 0.4, length: 5, travelDistance: 5.0, speed: 1.5 },
-  ],
-
-  pillboxes: [
-    { id: 'pillbox_omega_1', x: 280, y: 4.0, z: -320, width: 8, height: 2.2, length: 8 },
-    { id: 'pillbox_omega_2', x: 320, y: 4.0, z: -280, width: 8, height: 2.2, length: 8 },
-  ],
-
-  // 4. True Triangular Prism Ramps
-  ramps: [
-    { id: 'ramp_citadel_south', x: 0, y: 0, z: 30, width: 8, height: 6, length: 16, rotationY: 0 },
-    { id: 'ramp_citadel_north', x: 0, y: 0, z: -30, width: 8, height: 6, length: 16, rotationY: Math.PI },
-    { id: 'ramp_monorail_east', x: 326, y: 0, z: 300, width: 6, height: 8, length: 20, rotationY: Math.PI / 2 },
-  ],
-
-  // 5. Tactical Cover Walls (Full 2.2m Height & Short Barriers)
-  coverWalls: [
-    // Full player-height cover walls (height: 2.2m)
-    { x: -15, y: 6.0, z: 0, width: 0.5, height: 2.2, length: 8, rotationY: 0, fullCover: true },
-    { x: 15, y: 6.0, z: 0, width: 0.5, height: 2.2, length: 8, rotationY: 0, fullCover: true },
-    { x: 300, y: 4.0, z: -280, width: 8, height: 2.2, length: 0.5, rotationY: 0, fullCover: true },
-    { x: -300, y: 3.0, z: -270, width: 12, height: 2.2, length: 0.5, rotationY: 0, fullCover: true },
-
-    // Short tactical walls
-    { x: -25, y: 0.5, z: -25, width: 8, height: 1.0, length: 0.4, rotationY: Math.PI / 4 },
-    { x: 25, y: 0.5, z: -25, width: 8, height: 1.0, length: 0.4, rotationY: -Math.PI / 4 },
-    { x: -25, y: 0.5, z: 25, width: 8, height: 1.0, length: 0.4, rotationY: -Math.PI / 4 },
-    { x: 25, y: 0.5, z: 25, width: 8, height: 1.0, length: 0.4, rotationY: Math.PI / 4 },
-  ],
-
-  // 6. Pillars & Monoliths
-  pillars: [
-    { id: 'pillar_citadel_nw', x: -20, y: 6, z: -20, radius: 1.8, height: 12 },
-    { id: 'pillar_citadel_ne', x: 20, y: 6, z: -20, radius: 1.8, height: 12 },
-    { id: 'pillar_citadel_sw', x: -20, y: 6, z: 20, radius: 1.8, height: 12 },
-    { id: 'pillar_citadel_se', x: 20, y: 6, z: 20, radius: 1.8, height: 12 },
-  ],
-
-  // 7. Elevated Walkways
-  walkways: [
-    { id: 'walkway_citadel_n', x1: -20, y1: 12, z1: -20, x2: 20, y2: 12, z2: -20, width: 3.0, thickness: 0.4 },
-    { id: 'walkway_citadel_s', x1: -20, y1: 12, z1: 20, x2: 20, y2: 12, z2: 20, width: 3.0, thickness: 0.4 },
-    { id: 'walkway_monorail_bridge', x1: 300, y1: 10, z1: 280, x2: 300, y2: 10, z2: 320, width: 3.0, thickness: 0.4 },
-  ],
-
-  // 8. Vertical Climbable Ladders
-  ladders: [
-    { id: 'ladder_citadel_hub', x: 0, z: -24.1, yStart: 0, yEnd: 12.0, rotationY: Math.PI },
-    { id: 'ladder_monorail_hub', x: 300, z: 285.8, yStart: 0, yEnd: 10.0, rotationY: 0 },
-    { id: 'ladder_industrial_plant', x: -320, z: -312.1, yStart: 0, yEnd: 8.0, rotationY: Math.PI },
-    { id: 'ladder_building_single', x: -280, z: -290.1, yStart: 0, yEnd: 4.0, rotationY: 0 },
-  ],
-
-  // 9. Interactive Ziplines
-  ziplines: [
-    { id: 'zip_citadel_to_omega', start: [0, 12.4, 0], end: [300, 4.4, -300], speed: 36.0 },
-    { id: 'zip_citadel_to_industrial', start: [0, 12.4, 0], end: [-300, 3.4, -300], speed: 36.0 },
-    { id: 'zip_monorail_to_citadel', start: [300, 10.4, 300], end: [0, 6.4, 0], speed: 36.0 },
-    { id: 'zip_quantum_to_citadel', start: [-300, 10.4, 300], end: [0, 6.4, 0], speed: 36.0 },
-  ]
 };
 
 export const DEFAULT_MAP_CONFIG = TESTING_ARENA_CONFIG;
 
-// Map Presets Registry for Futureproofing (Allows instant switching to new maps in future)
 export const MAP_PRESETS = {
   testing_arena: TESTING_ARENA_CONFIG,
 };
 
 export class TerrainManager {
-  constructor(gameScene, config = DEFAULT_MAP_CONFIG) {
-    this.gameScene = gameScene;
-    this.scene = gameScene.scene;
-    this.environmentGroup = gameScene.environmentGroup;
+  constructor(scene, config = DEFAULT_MAP_CONFIG) {
+    this.scene = scene;
     this.config = config;
 
+    this.environmentGroup = new THREE.Group();
+    this.environmentGroup.name = "EnvironmentGroup";
+    this.scene.add(this.environmentGroup);
+
+    this.worldOctree = new Octree();
     this.ladders = [];
     this.ziplines = [];
+    this.movingPlatforms = [];
 
     this.materials = {
-      floor: new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4, metalness: 0.4 }),
-      wall: new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5, metalness: 0.3 }),
-      platform: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.5 }),
-      accent: new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xf59e0b, emissiveIntensity: 0.5, roughness: 0.2 }),
-      walkway: new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.6 }),
-      cable: new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.8, roughness: 0.1 }),
-      ladder: new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.3, roughness: 0.3 }),
-      handle: new THREE.MeshStandardMaterial({ color: 0xffe600, emissive: 0xffe600, emissiveIntensity: 0.9 }),
+      ground: new THREE.MeshStandardMaterial({ color: 0x0a0f1d, roughness: 0.85, metalness: 0.2 }),
+      wall: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7, metalness: 0.4 }),
+      platform: new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.6, metalness: 0.5 }),
+      accent: new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.6, roughness: 0.2 }),
+      accentGold: new THREE.MeshStandardMaterial({ color: 0xffb703, emissive: 0xffb703, emissiveIntensity: 0.6, roughness: 0.2 }),
+      ramp: new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.7, metalness: 0.3 }),
+      container: new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.5, metalness: 0.6 }),
+      pillarMat: new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8, metalness: 0.3 })
     };
 
     this.buildMap();

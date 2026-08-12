@@ -451,18 +451,18 @@ class Game {
   }
 
   handleInputs() {
-    // 1. Inventory Toggle (Key E, Key I, Key C, or Escape)
+    // 1. Inventory Toggle (Key E, Key I, or Escape)
     const isOpen = this.inventoryUI.isOpen;
-    const wantsClose = isOpen && (this.controls.keyState.escape || this.controls.keyState.inventory || this.controls.keyState.interact || this.controls.keyState.crafting);
+    const wantsClose = isOpen && (this.controls.keyState.escape || this.controls.keyState.inventory || this.controls.keyState.interact);
 
     if (wantsClose) {
       if (!this.inventoryKeyWasPressed) {
         this.inventoryKeyWasPressed = true;
+        this.interactKeyWasPressed = true;
         this.inventoryUI.close();
         this.controls.keyState.escape = false;
         this.controls.keyState.inventory = false;
         this.controls.keyState.interact = false;
-        this.controls.keyState.crafting = false;
         this.controls.lastInventoryCloseTime = Date.now();
         if (this.controls.blocker) {
           this.controls.blocker.classList.add('hidden');
@@ -474,7 +474,7 @@ class Game {
         }, 80);
       }
     } else {
-      if (!this.controls.keyState.inventory && !this.controls.keyState.crafting && !this.controls.keyState.interact) {
+      if (!this.controls.keyState.inventory && !this.controls.keyState.interact && !this.controls.keyState.escape) {
         this.inventoryKeyWasPressed = false;
       }
     }
@@ -518,8 +518,14 @@ class Game {
 
       // 5. Crosshair Raycast Interaction / Inventory Open (Key E)
       if (this.controls.keyState.interact || this.controls.keyState.inventory) {
-        if (!this.interactKeyWasPressed) {
+        if (!this.interactKeyWasPressed && !this.inventoryKeyWasPressed) {
+          const timeSinceClose = Date.now() - (this.controls.lastInventoryCloseTime || 0);
+          if (timeSinceClose < 300) {
+            return;
+          }
+
           this.interactKeyWasPressed = true;
+          this.inventoryKeyWasPressed = true;
 
           const activeTarget = this.getActiveInteraction();
 

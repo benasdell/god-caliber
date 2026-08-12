@@ -15,7 +15,7 @@ export class Controls {
       left: 'KeyA',
       right: 'KeyD',
       sprint: 'ShiftLeft',
-      crouch: 'ControlLeft',
+      crouch: 'KeyC',
       jump: 'Space',
       reload: 'KeyR',
       melee: 'KeyX',
@@ -24,7 +24,7 @@ export class Controls {
       drop: 'KeyQ',
       slot1: 'Digit1',
       slot2: 'Digit2',
-      crafting: 'KeyC',
+      crafting: 'KeyI',
     };
 
     this.sprintMode = 'hold'; // 'hold' | 'toggle'

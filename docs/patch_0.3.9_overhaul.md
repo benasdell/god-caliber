@@ -1,26 +1,41 @@
-# Sub-Patch 0.3.9 — "Inventory & Terrain Overhaul" Technical Specification
+# Sub-Patch 0.3.9 & 0.3.9b — "Inventory & Terrain Overhaul" Technical Specification
 
-> **Patch Name**: Sub-Patch 0.3.9 (Inventory, Crafting, Terrain & HUD Overhaul)  
-> **Target Release**: Patch 0.3.9  
-> **Focus**: Merged Full-Screen UI, Keybind Simplification, Auto-Equip Loot, Right-Click Recipe Learning, Centered Minimap Chevron, & 1000m BR Circle  
+> **Patch Name**: Sub-Patch 0.3.9 & 0.3.9b Hotfix (Inventory, Crafting, Procedural Terrain & Keybindings)  
+> **Target Release**: Patch 0.3.9b  
+> **Focus**: KeyE Toggle Latch Fix, Crouch Binding to KeyC, Fresh Procedural Terrain Reset with 10 Structure Types, & 1000m Circle  
 > **Date**: August 2026
 
 ---
 
 ## 1. Executive Summary
 
-Sub-Patch 0.3.9 provides a comprehensive overhaul of God-Caliber's inventory navigation, crafting interaction, minimap tracking, and surface loot spawning mechanics. It merges separate storage and crafting tabs into a unified, full-window overlay (`94vw` x `92vh`), standardizes inventory opening and closing to `KeyE` / `Escape`, adds auto-equipping of unequipped gear slots on item pickup, introduces right-click recipe learning, anchors local player chevrons dynamically at the exact center `(90, 90)` of the HUD minimap canvas, and rescales the initial Battle Royale circle diameter to **1000m** (`500m` radius).
+Sub-Patch 0.3.9b provides a hotfix and fresh terrain generation reset for God-Caliber. It fixes the `KeyE` inventory toggle multi-frame key repetition latch bug so `KeyE` opens and keeps the unified Inventory UI open reliably, rebinds default crouch/slide to **`KeyC`**, culls all legacy terrain artifacts, and generates 10 simple procedural structure types dynamically distributed across the **1000x1000m** Testing Arena!
 
 ---
 
 ## 2. Feature & Architecture Deliverables
 
-### 2.1 Keybind Simplification & Inventory Toggle ([`src/controls.js`](file:///c:/Users/benas/Documents/antigravity/god-caliber/src/controls.js), [`src/main.js`](file:///c:/Users/benas/Documents/antigravity/god-caliber/src/main.js))
-* Standardized `inventory` and `interact` keybindings to **`KeyE`**.
-* Pressing `KeyE` when no active interaction target (chest/loot/zipline/ladder) is under crosshair reticle dot toggles the Inventory UI open/closed.
-* Pressing `Escape` or `KeyE` while inventory is open closes the UI cleanly, clears key state latches, and safely re-engages pointer lock via `requestPointerLockSafe()`.
+### 2.1 KeyE Latch Fix & Crouch Keybinding (`KeyC`) ([`src/controls.js`](file:///c:/Users/benas/Documents/antigravity/god-caliber/src/controls.js), [`src/main.js`](file:///c:/Users/benas/Documents/antigravity/god-caliber/src/main.js))
+* Standardized crouch/slide binding to **`KeyC`** (`crouch: 'KeyC'`).
+* Fixed key press latches (`interactKeyWasPressed` & `inventoryKeyWasPressed`) with a 300ms debounce buffer to eliminate multi-frame toggle repetition bugs when pressing `KeyE`.
 
-### 2.2 Merged Full-Screen Inventory & Crafting Overlay ([`index.html`](file:///c:/Users/benas/Documents/antigravity/god-caliber/index.html), [`src/style.css`](file:///c:/Users/benas/Documents/antigravity/god-caliber/src/style.css), [`src/inventory-ui.js`](file:///c:/Users/benas/Documents/antigravity/god-caliber/src/inventory-ui.js))
+### 2.2 Fresh Procedural Terrain Generation Reset & 10 Structure Types ([`src/terrain.js`](file:///c:/Users/benas/Documents/antigravity/god-caliber/src/terrain.js))
+* Culled all legacy platforms, pillars, monorail hubs, and legacy ziplines.
+* Retained ground floor (`1000x1000m`) and 4 perimeter walls (`18m` height).
+* Constructed 10 modular structure type generators:
+  1. `single_house`: Single-story building (`10x8x4m`) with doorway frame & roof deck.
+  2. `two_story_house`: Two-story building (`12x10x8m`) with internal 45° ramp staircase.
+  3. `sniper_tower`: Elevated 4-post lookout tower (`6x6x12m`) with ladder.
+  4. `pillbox_bunker`: Fortified bunker (`10x10x3.2m`) with `0.3m` firing slit.
+  5. `cover_wall_straight`: Full player-height cover wall (`8x0.5x2.2m`).
+  6. `cover_wall_corner`: L-shaped corner barrier (`6x6x2.2m`).
+  7. `cargo_container_cluster`: Stacked industrial shipping crates (`8x3x3m`).
+  8. `catwalk_bridge`: Overhead walkway bridge (`16x4x6m`).
+  9. `monolithic_pillar`: Structural concrete pillar (`4x4x14m`).
+  10. `warehouse_hangar`: Wide open hangar structure (`24x16x7m`).
+* Scattered ~50 structure instances naturally across the 1000x1000m map using a spatial grid distribution with a 35m minimum clearance buffer.
+
+### 2.3 Merged Full-Screen Inventory & Crafting Overlay ([`index.html`](file:///c:/Users/benas/Documents/antigravity/god-caliber/index.html), [`src/style.css`](file:///c:/Users/benas/Documents/antigravity/god-caliber/src/style.css), [`src/inventory-ui.js`](file:///c:/Users/benas/Documents/antigravity/god-caliber/src/inventory-ui.js))
 * Merged separate storage and crafting tabs into a single unified overlay (`.inv-modal`, filling `94vw` x `92vh` with max dimensions `1600x1000px`).
 * **Top Row**: Left-side Operator Gear equipment mannequin (Head, Torso, Legs, Gloves, Primary, Secondary, Melee) + Right-side 5x12 Inventory Grid (60 item slots) & Recycled Dust balances.
 * **Bottom Row**: Integrated Crafting & Modding Bench (Blueprint Forge Grid, Category Filters, and Tier Upgrade Bench).

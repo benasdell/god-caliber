@@ -5,8 +5,8 @@ export class CircleManager {
     this.scene = scene;
     
     // Circle state (scaled for 1000x1000m arena)
-    this.currentRadius = 450;       // Current visual radius
-    this.targetRadius = 450;        // Target radius to shrink toward
+    this.currentRadius = 500;       // Current visual radius (1000m diameter)
+    this.targetRadius = 500;        // Target radius to shrink toward
     this.centerX = 0;
     this.centerZ = 0;
     this.targetCenterX = 0;
@@ -16,13 +16,13 @@ export class CircleManager {
     this.damageAccumulator = 0;    // For 0.5s tick intervals
     this.isActive = false;
     
-    // Circle stage definitions
+    // Circle stage definitions (1000m diameter total arena)
     this.stages = [
-      { radius: 450, centerOffset: 0, dps: 0, shrinkDuration: 0 },          // Stage 0: inactive
-      { radius: 280, centerOffset: 100, dps: 5, shrinkDuration: 45 },       // Stage 1
-      { radius: 160, centerOffset: 60, dps: 10, shrinkDuration: 35 },       // Stage 2
-      { radius: 80, centerOffset: 30, dps: 20, shrinkDuration: 25 },        // Stage 3
-      { radius: 25, centerOffset: 10, dps: 40, shrinkDuration: 20 },        // Stage 4
+      { radius: 500, centerOffset: 0, dps: 0, shrinkDuration: 0 },          // Stage 0: inactive
+      { radius: 300, centerOffset: 120, dps: 5, shrinkDuration: 45 },       // Stage 1
+      { radius: 180, centerOffset: 80, dps: 10, shrinkDuration: 35 },       // Stage 2
+      { radius: 90, centerOffset: 40, dps: 20, shrinkDuration: 25 },        // Stage 3
+      { radius: 30, centerOffset: 15, dps: 40, shrinkDuration: 20 },        // Stage 4
       { radius: 5, centerOffset: 0, dps: 80, shrinkDuration: 15 },          // Stage 5 (final)
     ];
 

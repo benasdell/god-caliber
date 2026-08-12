@@ -198,23 +198,18 @@
       </div>
     </div>
 
-    <!-- Inventory Overlay (Press I or C) -->
+    <!-- Inventory Overlay (Press E to Toggle) -->
     <div id="inventory-overlay" class="hidden">
       <div class="inv-modal">
         <div class="inv-header">
           <h2>TACTICAL INVENTORY & CRAFTING BENCH</h2>
-          <span class="inv-hint">PRESS [I] FOR STORAGE • PRESS [C] FOR CRAFTING BENCH • PRESS [ESC] TO CLOSE</span>
+          <span class="inv-hint">PRESS [E] OR [ESC] TO CLOSE INVENTORY</span>
         </div>
 
-        <!-- Top Navigation Tabs -->
-        <div class="inv-top-nav">
-          <button id="inv-nav-btn-storage" class="inv-nav-tab active">🎒 STORAGE & OPERATOR GEAR [I]</button>
-          <button id="inv-nav-btn-crafting" class="inv-nav-tab">⚡ CRAFTING BENCH [C]</button>
-        </div>
-
-        <!-- Tab 1: Storage & Operator Gear View -->
-        <div id="inv-view-storage" class="inv-view-content">
-          <div class="inv-body">
+        <!-- Merged Full-Screen Unified View -->
+        <div id="inv-unified-view" class="inv-unified-layout">
+          <!-- Top Row: Equipment (Left) + 5x12 Inventory Grid (Right) -->
+          <div class="inv-top-section">
             <!-- Left: Equipment / Character Paperdoll -->
             <div class="inv-paperdoll-panel">
               <h3>OPERATOR GEAR</h3>
@@ -257,75 +252,63 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Tab 2: Crafting Bench View -->
-        <div id="inv-view-crafting" class="inv-view-content hidden">
-          <div class="crafting-tab-layout">
-            <!-- Left: Craftable Item Blueprint Grid & Category Filters -->
-            <div class="crafting-blueprint-panel">
-              <div class="crafting-panel-header">
-                <h3>SELECT BLUEPRINT TO FORGE</h3>
-                <div id="craft-cat-filters">
-                  <button class="craft-cat-btn active" data-cat="all">ALL</button>
-                  <button class="craft-cat-btn" data-cat="weapon">WEAPONS</button>
-                  <button class="craft-cat-btn" data-cat="helmet">HELMETS</button>
-                  <button class="craft-cat-btn" data-cat="vest">VESTS</button>
-                  <button class="craft-cat-btn" data-cat="gloves">GLOVES</button>
-                  <button class="craft-cat-btn" data-cat="recipe">RECIPES</button>
-                </div>
-              </div>
-              <div id="craftable-items-grid"></div>
-            </div>
-
-            <!-- Right: Crafting Execution & Tier Upgrade Panel -->
-            <div class="crafting-action-panel">
-              <div class="crafting-panel-header">
-                <h3>FORGE & UPGRADE BENCH</h3>
-              </div>
-              
-              <!-- Forge Selection Control -->
-              <div class="crafting-section-box">
-                <div class="craft-title">FORGE SELECTED ITEM</div>
-                <div id="craft-selected-item-info">
-                  <span id="craft-selected-title">🔫 COMBAT RIFLE</span>
-                </div>
-                <div class="craft-controls-col">
-                  <label for="craft-rarity-select">TARGET RARITY:</label>
-                  <select id="craft-rarity-select" class="craft-select">
-                    <option value="normal">⚪ Normal (15 Normal Dust)</option>
-                    <option value="magic">🔵 Magic (25 Normal Dust)</option>
-                    <option value="rare">🟡 Rare (15 Magic, 10 Normal Dust)</option>
-                    <option value="epic">🟣 Epic (20 Rare, 10 Magic Dust)</option>
-                  </select>
-                  <button id="craft-forge-btn" class="craft-btn-action">FORGE ITEM</button>
-                </div>
-              </div>
-
-              <!-- Upgrade / Recipe Crafting Slot -->
-              <div class="crafting-section-box">
-                <div class="craft-title">UPGRADE TIER / RECIPE CRAFT</div>
-                <div class="craft-controls-col">
-                  <div id="craft-upgrade-slot" class="upgrade-slot-box">
-                    <span class="upgrade-placeholder-text">PLACE STORAGE ITEM OR RECIPE HERE</span>
-                  </div>
-                  <div id="craft-upgrade-info" class="upgrade-info-box hidden">
-                    <div id="upgrade-item-display-name">Item Name</div>
-                    <div id="upgrade-cost-label">Cost: --</div>
-                    <button id="craft-upgrade-btn" class="craft-btn-action">CRAFT / UPGRADE</button>
+          <!-- Bottom Row: Integrated Crafting Bench -->
+          <div class="inv-bottom-section">
+            <div class="crafting-unified-layout">
+              <!-- Left: Craftable Item Blueprint Grid & Category Filters -->
+              <div class="crafting-blueprint-panel">
+                <div class="crafting-panel-header">
+                  <h3>SELECT BLUEPRINT TO FORGE</h3>
+                  <div id="craft-cat-filters">
+                    <button class="craft-cat-btn active" data-cat="all">ALL</button>
+                    <button class="craft-cat-btn" data-cat="weapon">WEAPONS</button>
+                    <button class="craft-cat-btn" data-cat="helmet">HELMETS</button>
+                    <button class="craft-cat-btn" data-cat="vest">VESTS</button>
+                    <button class="craft-cat-btn" data-cat="gloves">GLOVES</button>
+                    <button class="craft-cat-btn" data-cat="recipe">RECIPES</button>
                   </div>
                 </div>
+                <div id="craftable-items-grid"></div>
               </div>
 
-              <!-- Dust Balance Footer inside Crafting -->
-              <div class="dust-display">
-                <span class="dust-title">RECYCLED DUST BALANCES:</span>
-                <div class="dust-counters">
-                  <span class="dust-counter normal" id="craft-dust-normal">⚪ 0</span>
-                  <span class="dust-counter magic" id="craft-dust-magic">🔵 0</span>
-                  <span class="dust-counter rare" id="craft-dust-rare">🟡 0</span>
-                  <span class="dust-counter epic" id="craft-dust-epic">🟣 0</span>
-                  <span class="dust-counter legendary" id="craft-dust-legendary">🟠 0</span>
+              <!-- Right: Crafting Execution & Tier Upgrade Panel -->
+              <div class="crafting-action-panel">
+                <div class="crafting-panel-header">
+                  <h3>FORGE & UPGRADE BENCH</h3>
+                </div>
+                
+                <!-- Forge Selection Control -->
+                <div class="crafting-section-box">
+                  <div class="craft-title">FORGE SELECTED ITEM</div>
+                  <div id="craft-selected-item-info">
+                    <span id="craft-selected-title">🔫 COMBAT RIFLE</span>
+                  </div>
+                  <div class="craft-controls-col">
+                    <label for="craft-rarity-select">TARGET RARITY:</label>
+                    <select id="craft-rarity-select" class="craft-select">
+                      <option value="normal">⚪ Normal (15 Normal Dust)</option>
+                      <option value="magic">🔵 Magic (25 Normal Dust)</option>
+                      <option value="rare">🟡 Rare (15 Magic, 10 Normal Dust)</option>
+                      <option value="epic">🟣 Epic (20 Rare, 10 Magic Dust)</option>
+                    </select>
+                    <button id="craft-forge-btn" class="craft-btn-action">FORGE ITEM</button>
+                  </div>
+                </div>
+
+                <!-- Upgrade / Recipe Crafting Slot -->
+                <div class="crafting-section-box">
+                  <div class="craft-title">UPGRADE TIER / RECIPE CRAFT</div>
+                  <div class="craft-controls-col">
+                    <div id="craft-upgrade-slot" class="upgrade-slot-box">
+                      <span class="upgrade-placeholder-text">PLACE ITEM OR RECIPE HERE</span>
+                    </div>
+                    <div id="craft-upgrade-info" class="upgrade-info-box hidden">
+                      <div id="upgrade-item-display-name">Item Name</div>
+                      <div id="upgrade-cost-label">Cost: --</div>
+                      <button id="craft-upgrade-btn" class="craft-btn-action">CRAFT / UPGRADE</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

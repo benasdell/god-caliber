@@ -451,57 +451,32 @@ class Game {
   }
 
   handleInputs() {
-    // 1. Inventory & Crafting Toggle (Key I, Key C, or Escape)
+    // 1. Inventory Toggle (Key E, Key I, Key C, or Escape)
     const isOpen = this.inventoryUI.isOpen;
-    const wantsClose = isOpen && this.controls.keyState.escape;
-    const wantsStorage = this.controls.keyState.inventory;
-    const wantsCrafting = this.controls.keyState.crafting;
+    const wantsClose = isOpen && (this.controls.keyState.escape || this.controls.keyState.inventory || this.controls.keyState.interact || this.controls.keyState.crafting);
 
     if (wantsClose) {
-      this.inventoryUI.close();
-      this.controls.keyState.escape = false;
-      this.controls.keyState.inventory = false;
-      this.controls.keyState.crafting = false;
-      this.controls.lastInventoryCloseTime = Date.now();
-      if (this.controls.blocker) {
-        this.controls.blocker.classList.add('hidden');
-      }
-      setTimeout(() => {
-        if (!this.inventoryUI.isOpen && !document.pointerLockElement) {
-          this.requestPointerLockSafe();
-        }
-      }, 80);
-    } else if (wantsStorage) {
       if (!this.inventoryKeyWasPressed) {
         this.inventoryKeyWasPressed = true;
-        if (isOpen && this.inventoryUI.activeTab === 'storage') {
-          // Pressing I while already on Storage tab closes inventory
-          this.inventoryUI.close();
-          this.controls.blocker.classList.add('hidden');
-          this.requestPointerLockSafe();
-        } else {
-          // Open or switch to Storage tab
-          this.inventoryUI.toggle('storage');
-        }
+        this.inventoryUI.close();
+        this.controls.keyState.escape = false;
         this.controls.keyState.inventory = false;
-      }
-    } else if (wantsCrafting) {
-      if (!this.craftingKeyWasPressed) {
-        this.craftingKeyWasPressed = true;
-        if (isOpen && this.inventoryUI.activeTab === 'crafting') {
-          // Pressing C while already on Crafting tab closes inventory
-          this.inventoryUI.close();
-          this.controls.blocker.classList.add('hidden');
-          this.requestPointerLockSafe();
-        } else {
-          // Open or switch to Crafting tab
-          this.inventoryUI.toggle('crafting');
-        }
+        this.controls.keyState.interact = false;
         this.controls.keyState.crafting = false;
+        this.controls.lastInventoryCloseTime = Date.now();
+        if (this.controls.blocker) {
+          this.controls.blocker.classList.add('hidden');
+        }
+        setTimeout(() => {
+          if (!this.inventoryUI.isOpen && !document.pointerLockElement) {
+            this.requestPointerLockSafe();
+          }
+        }, 80);
       }
     } else {
-      this.inventoryKeyWasPressed = false;
-      this.craftingKeyWasPressed = false;
+      if (!this.controls.keyState.inventory && !this.controls.keyState.crafting && !this.controls.keyState.interact) {
+        this.inventoryKeyWasPressed = false;
+      }
     }
 
     // 2. Quick Melee (Key X)
@@ -532,6 +507,7 @@ class Game {
     } else {
       this.dropKeyWasPressed = false;
     }
+
     // 4. Weapon Slot Switching (Key 1 & Key 2)
     if (this.controls.isLocked) {
       if (this.controls.keyState.slot1) {
@@ -540,8 +516,8 @@ class Game {
         this.switchWeaponSlot('secondary');
       }
 
-      // 5. Crosshair Raycast Interaction (Key E)
-      if (this.controls.keyState.interact) {
+      // 5. Crosshair Raycast Interaction / Inventory Open (Key E)
+      if (this.controls.keyState.interact || this.controls.keyState.inventory) {
         if (!this.interactKeyWasPressed) {
           this.interactKeyWasPressed = true;
 
@@ -553,17 +529,28 @@ class Game {
             if (item.isChest) {
               this.openChest(closestLoot);
             } else {
-              const space = this.inventory.findEmptySpace(item);
-              if (space) {
-                this.inventory.addItem(item, space.row, space.col);
+              // Auto-Equip Check: If designated slot is unequipped, auto-equip directly!
+              const targetSlot = this.inventoryUI.getEquipmentSlotForItem(item);
+              if (targetSlot && !this.inventory.equipment[targetSlot]) {
+                this.inventory.equipment[targetSlot] = item;
                 this.worldItemManager.removeItem(closestLoot);
-                this.ui.addKillFeed(`ACQUIRED ${item.name}`);
+                this.ui.addKillFeed(`⚡ AUTO-EQUIPPED ${item.name} [${targetSlot.toUpperCase()}]`);
                 sound.playReload();
                 this.inventoryUI.applyEquipmentStats();
                 this.inventoryUI.renderItems();
               } else {
-                this.ui.addKillFeed("⚠️ INVENTORY GRID STORAGE FULL!");
-                sound.playEmpty();
+                const space = this.inventory.findEmptySpace(item);
+                if (space) {
+                  this.inventory.addItem(item, space.row, space.col);
+                  this.worldItemManager.removeItem(closestLoot);
+                  this.ui.addKillFeed(`ACQUIRED ${item.name}`);
+                  sound.playReload();
+                  this.inventoryUI.applyEquipmentStats();
+                  this.inventoryUI.renderItems();
+                } else {
+                  this.ui.addKillFeed("⚠️ INVENTORY GRID STORAGE FULL!");
+                  sound.playEmpty();
+                }
               }
             }
           } else if (activeTarget && activeTarget.type === 'terrain') {
@@ -582,6 +569,11 @@ class Game {
                 this.player.attachLadder(terrainObj.data);
                 this.ui.addKillFeed("🪜 CLIMBING LADDER");
               }
+            }
+          } else {
+            // No active interactable target under crosshair: open Inventory UI!
+            if (!this.inventoryUI.isOpen) {
+              this.inventoryUI.toggle();
             }
           }
         }
@@ -899,28 +891,35 @@ class Game {
       this.worldItemManager.spawnItem(chestData, pos);
     };
 
-    // 16 Tactical Crates spread across landmarks and 240x240m map
+    // 16 Tactical Crates spread cleanly across 5 POIs and 1000x1000m map
     const cratePositions = [
-      new THREE.Vector3(0, 3.2, 0),        // Center platform
-      new THREE.Vector3(0, 7.2, -50),      // North Overlook
-      new THREE.Vector3(0, 7.2, 50),       // South Overlook
-      new THREE.Vector3(-40, 10.2, -40),   // NW Pillar
-      new THREE.Vector3(40, 10.2, -40),    // NE Pillar
-      new THREE.Vector3(-40, 10.2, 40),    // SW Pillar
-      new THREE.Vector3(40, 10.2, 40),     // SE Pillar
-      new THREE.Vector3(0, 10.2, 0),       // Center walkway cross
+      // 1. Sector Zero Citadel Hub (Center 0,0)
+      new THREE.Vector3(0, 9.5, 0),        // Citadel Upper Deck
+      new THREE.Vector3(-12, 3.5, -12),    // Citadel Lower Platform NW
+      new THREE.Vector3(12, 3.5, 12),      // Citadel Lower Platform SE
 
-      // 4 POI Landmark Crates
-      new THREE.Vector3(60, 15.2, -60),    // POI 1: Sniper Outpost Tower Top
-      new THREE.Vector3(-60, -2.8, -60),   // POI 2: Underground Bunker Chamber
-      new THREE.Vector3(-74, 8.2, 60),     // POI 3: Warehouse West Roof
-      new THREE.Vector3(60, 1.2, 60),      // POI 4: CQB Courtyard Monument Base
+      // 2. Outpost Omega Pillboxes (300, -300)
+      new THREE.Vector3(300, 2.5, -300),   // Bunker interior deck
+      new THREE.Vector3(315, 2.5, -285),   // Bunker supply wing
 
-      // Outer Perimeter Crates
-      new THREE.Vector3(-85, 1.2, -85),
-      new THREE.Vector3(85, 1.2, -85),
-      new THREE.Vector3(-85, 1.2, 85),
-      new THREE.Vector3(85, 1.2, 85),
+      // 3. Industrial Complex (-300, -300)
+      new THREE.Vector3(-300, 2.0, -300),  // Factory Ground Floor
+      new THREE.Vector3(-300, 6.5, -300),  // Factory Second Story Deck
+
+      // 4. Quantum Core Zone (-300, 300)
+      new THREE.Vector3(-300, 5.5, 300),   // Monolith Core Base
+
+      // 5. Transport Monorail Hub (300, 300)
+      new THREE.Vector3(300, 8.5, 300),    // Monorail Station Concourse
+      new THREE.Vector3(315, 8.5, 310),    // Catwalk Bridge Deck
+
+      // 6. Perimeter & Field Outposts
+      new THREE.Vector3(150, 0.5, -150),
+      new THREE.Vector3(-150, 0.5, -150),
+      new THREE.Vector3(-150, 0.5, 150),
+      new THREE.Vector3(150, 0.5, 150),
+      new THREE.Vector3(0, 0.5, -250),
+      new THREE.Vector3(0, 0.5, 250),
     ];
 
     cratePositions.forEach((pos, idx) => {

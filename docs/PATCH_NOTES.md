@@ -1,13 +1,14 @@
 # 📜 God-Caliber — Master Patch Notes & Release Changelog
 
-> **Complete Version History**: Patch 0.1.0 to Patch 0.3.8 (Thunderbird)  
+> **Complete Version History**: Patch 0.1.0 to Patch 0.3.9 (Overhaul)  
 > **Engine**: Three.js (v0.170.0) + Vite (v5.4.0) + PeerJS WebRTC
 
 ---
 
 ## Table of Contents
 
-- [Patch 0.3 Series — Multiplayer, Vision & Thunderbird World](#-patch-03-series--multiplayer-vision--thunderbird-world)
+- [Patch 0.3 Series — Multiplayer, Vision & System Overhauls](#-patch-03-series--multiplayer-vision--system-overhauls)
+  - [Sub-Patch 0.3.9 — Inventory, Crafting, Terrain & HUD Overhaul](#sub-patch-039--inventory-crafting-terrain--hud-overhaul)
   - [Sub-Patch 0.3.8 — "Thunderbird" Modeling, Procedural Terrain & Interaction Overhaul](#sub-patch-038--thunderbird-modeling-procedural-terrain--interaction-overhaul)
   - [Sub-Patch 0.3.7 — "Bastion" Security Hardening & Performance Overhaul](#sub-patch-037--bastion-security-hardening--performance-overhaul)
   - [Sub-Patch 0.3.6 — Project Rename & Remote Integration](#sub-patch-036--project-rename--remote-integration)
@@ -26,7 +27,26 @@
 
 ---
 
-## 🛡️ Patch 0.3 Series — Multiplayer, Vision & Thunderbird World
+## 🛡️ Patch 0.3 Series — Multiplayer, Vision & System Overhauls
+
+### Sub-Patch 0.3.9 — Inventory, Crafting, Terrain & HUD Overhaul
+*Release Date: August 2026*
+
+* **Keybind Simplification (`KeyE` / `Escape`)**:
+  - Unified inventory toggle to `KeyE`. Pressing `Escape` or `KeyE` while open closes inventory cleanly and re-engages pointer lock safely.
+* **Merged Full-Screen Inventory & Crafting UI**:
+  - Merged storage and crafting tabs into one unified full-window overlay (`94vw` x `92vh`, max `1600x1000px`).
+  - Left column Operator Gear mannequin, right column 5x12 Inventory Grid, bottom section Integrated Crafting Bench.
+* **Unlocked Item Fix & Right-Click Recipe Learning**:
+  - Fixed state bug so items with `isLocked === false` can be freely dragged, upgraded, and recycled.
+  - Right-clicking Recipe items in inventory consumes the recipe, unlocks it for the match, and persists to `localStorage`.
+* **Auto-Equip Loot Feature**:
+  - Picking up an item for an unequipped gear slot automatically equips it directly to that slot (`⚡ AUTO-EQUIPPED <Item> [<SLOT>]`).
+* **Centered Minimap Chevron & Dynamic Scrolling**:
+  - Anchored local player chevron arrow at exact canvas center `(90, 90)` while background grid, safe rings, POIs, and enemy markers translate dynamically.
+* **First-Principles Surface Loot Spawning & 1000m Circle Rescaling**:
+  - Restructured tactical crates and loot coordinates across 5 POI floor slabs.
+  - Rescaled initial BR circle radius to `500m` (1000m diameter) across 5 shrinking stages (`500m` → `300m` → `180m` → `90m` → `30m` → `5m`).
 
 ### Sub-Patch 0.3.8 — "Thunderbird" Modeling, Procedural Terrain & Interaction Overhaul
 *Release Date: August 2026*

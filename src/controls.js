@@ -19,7 +19,7 @@ export class Controls {
       jump: 'Space',
       reload: 'KeyR',
       melee: 'KeyX',
-      inventory: 'KeyI',
+      inventory: 'KeyE',
       interact: 'KeyE',
       drop: 'KeyQ',
       slot1: 'Digit1',

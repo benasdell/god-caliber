@@ -16,10 +16,11 @@ export class MinimapManager {
     this.scaleFactor = 180 / 240; // 0.75 px per meter
 
     this.landmarks = [
-      { name: 'Sniper Outpost', icon: '🎯', x: 60, z: -60 },
-      { name: 'Bunker', icon: '⬡', x: -60, z: -60 },
-      { name: 'Warehouse', icon: '📦', x: -60, z: 60 },
-      { name: 'Courtyard', icon: '⚔️', x: 60, z: 60 }
+      { name: 'Sector Zero Citadel', icon: '🏰', x: 0, z: 0 },
+      { name: 'Outpost Omega', icon: '⬡', x: 300, z: -300 },
+      { name: 'Industrial Complex', icon: '🏭', x: -300, z: -300 },
+      { name: 'Quantum Core', icon: '⚛️', x: -300, z: 300 },
+      { name: 'Monorail Hub', icon: '🚟', x: 300, z: 300 }
     ];
 
     this.dpr = 1;
@@ -42,10 +43,18 @@ export class MinimapManager {
     this.ctx.scale(dpr, dpr);
   }
 
-  worldToCanvas(x, z) {
-    const cx = (x + this.halfMap) * this.scaleFactor;
-    const cy = (z + this.halfMap) * this.scaleFactor;
-    return { x: cx, y: cy };
+  worldToCanvas(x, z, playerPos) {
+    if (!playerPos) {
+      const cx = (x + this.halfMap) * this.scaleFactor;
+      const cy = (z + this.halfMap) * this.scaleFactor;
+      return { x: cx, y: cy };
+    }
+    const relX = x - playerPos.x;
+    const relZ = z - playerPos.z;
+    return {
+      x: this.center + relX * this.scaleFactor,
+      y: this.center + relZ * this.scaleFactor
+    };
   }
 
   render(player, circleManager, targets = []) {
@@ -62,6 +71,8 @@ export class MinimapManager {
     const cx = this.center;
     const cy = this.center;
 
+    const playerPos = player ? (player.camera ? player.camera.position : player.position) : null;
+
     ctx.clearRect(0, 0, w, h);
 
     ctx.save();
@@ -75,16 +86,26 @@ export class MinimapManager {
 
     ctx.lineWidth = 1;
     ctx.strokeStyle = 'rgba(0, 240, 255, 0.1)';
-    const gridStepMeters = 30;
-    for (let wx = -this.halfMap; wx <= this.halfMap; wx += gridStepMeters) {
-      const px = this.worldToCanvas(wx, 0).x;
+    const gridStepMeters = 50;
+    
+    // Dynamic scrolling grid lines relative to player
+    const pX = playerPos ? playerPos.x : 0;
+    const pZ = playerPos ? playerPos.z : 0;
+
+    const startX = Math.floor((pX - 120) / gridStepMeters) * gridStepMeters;
+    const endX = Math.ceil((pX + 120) / gridStepMeters) * gridStepMeters;
+    for (let wx = startX; wx <= endX; wx += gridStepMeters) {
+      const px = this.worldToCanvas(wx, 0, playerPos).x;
       ctx.beginPath();
       ctx.moveTo(px, 0);
       ctx.lineTo(px, h);
       ctx.stroke();
     }
-    for (let wz = -this.halfMap; wz <= this.halfMap; wz += gridStepMeters) {
-      const py = this.worldToCanvas(0, wz).y;
+
+    const startZ = Math.floor((pZ - 120) / gridStepMeters) * gridStepMeters;
+    const endZ = Math.ceil((pZ + 120) / gridStepMeters) * gridStepMeters;
+    for (let wz = startZ; wz <= endZ; wz += gridStepMeters) {
+      const py = this.worldToCanvas(0, wz, playerPos).y;
       ctx.beginPath();
       ctx.moveTo(0, py);
       ctx.lineTo(w, py);
@@ -101,7 +122,7 @@ export class MinimapManager {
 
     // 2. Next Safe Zone Ring (gold dashed stroke)
     if (circleManager && typeof circleManager.targetRadius === 'number') {
-      const targetPos = this.worldToCanvas(circleManager.targetCenterX || 0, circleManager.targetCenterZ || 0);
+      const targetPos = this.worldToCanvas(circleManager.targetCenterX || 0, circleManager.targetCenterZ || 0, playerPos);
       const targetRadiusPx = circleManager.targetRadius * this.scaleFactor;
 
       ctx.save();
@@ -116,7 +137,7 @@ export class MinimapManager {
 
     // 3. Active Shrinking Circle (cyan stroke)
     if (circleManager && typeof circleManager.currentRadius === 'number') {
-      const currentPos = this.worldToCanvas(circleManager.centerX || 0, circleManager.centerZ || 0);
+      const currentPos = this.worldToCanvas(circleManager.centerX || 0, circleManager.centerZ || 0, playerPos);
       const currentRadiusPx = circleManager.currentRadius * this.scaleFactor;
 
       ctx.save();
@@ -129,17 +150,16 @@ export class MinimapManager {
       ctx.restore();
     }
 
-    // 4. Landmark Icons (Sniper Outpost 🎯, Bunker ⬡, Warehouse 📦, Courtyard ⚔️)
+    // 4. Landmark Icons (Citadel 🏰, Omega ⬡, Industrial 🏭, Quantum ⚛️, Monorail 🚟)
     ctx.font = '13px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const lm of this.landmarks) {
-      const pos = this.worldToCanvas(lm.x, lm.z);
+      const pos = this.worldToCanvas(lm.x, lm.z, playerPos);
       ctx.fillText(lm.icon, pos.x, pos.y);
     }
 
     // 5. Enemy Markers (red dots with elevation chevrons ▲/▼ for height diff > 2.5m & edge clamping)
-    const playerPos = player ? (player.camera ? player.camera.position : player.position) : null;
     const playerY = playerPos ? playerPos.y : 0;
     const maxClampRadius = cx - 8;
 
@@ -149,7 +169,7 @@ export class MinimapManager {
         const bPos = bot.position || (bot.group ? bot.group.position : null);
         if (!bPos) continue;
 
-        const raw = this.worldToCanvas(bPos.x, bPos.z);
+        const raw = this.worldToCanvas(bPos.x, bPos.z, playerPos);
         const dx = raw.x - cx;
         const dy = raw.y - cy;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -187,10 +207,8 @@ export class MinimapManager {
       }
     }
 
-    // 6. Player Heading Chevron Arrow (#00f0ff)
+    // 6. Player Heading Chevron Arrow (#00f0ff) ALWAYS CENTERED at (cx, cy)
     if (playerPos) {
-      const pCanvasPos = this.worldToCanvas(playerPos.x, playerPos.z);
-
       let yawAngle = 0;
       if (player.camera && player.camera.getWorldDirection) {
         const dir = new THREE.Vector3();
@@ -201,7 +219,7 @@ export class MinimapManager {
       }
 
       ctx.save();
-      ctx.translate(pCanvasPos.x, pCanvasPos.y);
+      ctx.translate(cx, cy);
       ctx.rotate(yawAngle);
 
       ctx.fillStyle = '#00f0ff';

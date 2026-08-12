@@ -174,7 +174,11 @@ export class InventoryUI {
 
         if (e.button === 2) {
           e.preventDefault();
-          this.autoEquipItem(item);
+          if (item.type === 'recipe') {
+            this.learnRecipe(item);
+          } else {
+            this.autoEquipItem(item);
+          }
         } else {
           this.onItemMouseDown(e, item);
         }
@@ -183,7 +187,7 @@ export class InventoryUI {
       this.gridContainerEl.appendChild(itemEl);
     });
 
-    // Update dust display counters on both tabs
+    // Update dust display counters
     this.updateDustDisplays();
 
     this.updateEquipmentUI();
@@ -782,9 +786,56 @@ export class InventoryUI {
     this.renderItems();
   }
 
+  getEquipmentSlotForItem(item) {
+    if (!item) return null;
+    const type = item.type;
+    const baseId = item.baseId || '';
+    if (type === 'weapon' || baseId.startsWith('weapon_')) {
+      if (baseId.includes('melee') || baseId.includes('sword') || baseId.includes('axe') || baseId.includes('blade')) {
+        return 'melee';
+      }
+      return 'primary';
+    }
+    if (type === 'helmet' || baseId.includes('helmet')) return 'head';
+    if (type === 'vest' || type === 'torso' || baseId.includes('vest')) return 'torso';
+    if (type === 'gloves' || baseId.includes('gloves')) return 'gloves';
+    if (type === 'boots' || type === 'legs' || baseId.includes('boots')) return 'legs';
+    return null;
+  }
+
+  learnRecipe(recipeItem) {
+    if (!recipeItem || recipeItem.type !== 'recipe') return;
+    const targetBaseId = recipeItem.recipeTargetBaseId || 'weapon_ar15';
+    if (!this.player.learnedRecipes) {
+      this.player.learnedRecipes = [];
+    }
+    if (!this.player.learnedRecipes.includes(targetBaseId)) {
+      this.player.learnedRecipes.push(targetBaseId);
+    }
+    this.inv.removeItem(recipeItem);
+    sound.playReload();
+
+    try {
+      localStorage.setItem('god_caliber_learned_recipes', JSON.stringify(this.player.learnedRecipes));
+    } catch (e) {}
+
+    if (window.gameInstance && window.gameInstance.ui) {
+      window.gameInstance.ui.addKillFeed(`📜 LEARNED RECIPE: ${recipeItem.name}!`);
+    }
+    this.renderItems();
+    this.renderCraftableGrid();
+  }
+
   toggleItemLock(item) {
     item.isLocked = !item.isLocked;
-    sound.playReload(); // mechanical click sound
+    sound.playReload();
+    if (window.gameInstance && window.gameInstance.ui) {
+      const lockStatus = item.isLocked ? "🔒 LOCKED" : "🔓 UNLOCKED";
+      window.gameInstance.ui.addKillFeed(`${lockStatus} ${item.name}`);
+    }
+    if (this.upgradeTargetItem === item) {
+      this.updateUpgradeUI();
+    }
     this.renderItems();
   }
 

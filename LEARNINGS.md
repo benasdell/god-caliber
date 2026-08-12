@@ -65,5 +65,17 @@
 - **1000m Map Circle & Physics Bounds Synchronization**:
   When expanding map bounds, update `TESTING_ARENA_CONFIG.ground` and rebuild the Octree physics node (`worldOctree.fromGraphNode(environmentGroup)`). Always scale the Battle Royale circle initial radius (`450m`) to match the expanded perimeter bounds.
 
+---
+
+## 7. Inventory UI & Minimap Coordinate Transformation Invariants (Sub-Patch 0.3.9 Overhaul)
+
+- **Minimap Relative Transformation Matrix Invariant**:
+  Mapping dynamic world entities onto a 2D HUD minimap MUST convert world coordinates relative to the player's world position: `relX = x - playerPos.x`, `relZ = z - playerPos.z`. Anchoring the player chevron at canvas center `(cx, cy)` while transforming all external positions guarantees the player never leaves the minimap frame regardless of map dimensions.
+- **Unified Full-Screen Overlay Navigation**:
+  Do not split core player management workflows into disconnected tabs with duplicate rendering code. Merging inventory storage and crafting into a single unified overlay simplifies keybindings (`KeyE` toggle) and eliminates tab state sync bugs.
+- **Auto-Equipping Unequipped Gear Slots**:
+  When picking up items, check if the designated slot (`primary`, `secondary`, `head`, `vest`, `gloves`, `boots`) is unequipped (`equipment[slot] === null`). Auto-equipping directly improves looting pacing and removes manual inventory cluttering.
+
+
 
 

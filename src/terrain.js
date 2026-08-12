@@ -51,115 +51,106 @@ export function createTriangularRampGeometry(width, height, length) {
   return geom;
 }
 
-// "Testing Arena" Modular Map Configuration — 240x240m Battle Royale Arena
+// "Thunderbird 1000m Sector Arena" Modular Map Configuration — 1000x1000m Battle Royale World
 export const TESTING_ARENA_CONFIG = {
   id: "testing_arena",
-  name: "Testing Arena",
+  name: "Thunderbird 1000m Sector Arena",
 
-  // 1. Ground & Perimeter Walls (240x240m)
-  ground: { width: 240, length: 240 },
-  perimeterWalls: { height: 12, thickness: 2 },
+  // 1. Ground & Perimeter Walls (1000x1000m)
+  ground: { width: 1000, length: 1000 },
+  perimeterWalls: { height: 18, thickness: 3 },
 
-  // 2. Central & Secondary Platforms + 4 Major Landmark POIs
+  // 2. Central & POI Platforms
   platforms: [
-    { id: 'center_platform', x: 0, y: 1.5, z: 0, width: 18, height: 3, length: 18, color: 0x1e293b },
-    { id: 'north_overlook', x: 0, y: 3.5, z: -50, width: 24, height: 7, length: 12, color: 0x1e293b },
-    { id: 'south_overlook', x: 0, y: 3.5, z: 50, width: 24, height: 7, length: 12, color: 0x1e293b },
+    // POI 1: Sector Zero Citadel (Center x: 0, z: 0)
+    { id: 'citadel_central_hub', x: 0, y: 3.0, z: 0, width: 48, height: 6, length: 48, color: 0x1e293b },
+    { id: 'citadel_upper_deck', x: 0, y: 9.0, z: 0, width: 32, height: 6, length: 32, color: 0x0f172a },
 
-    // POI 1: Sniper Outpost (x: 60, z: -60) — 15m High Elevated Tower Platform
-    { id: 'sniper_outpost_tower', x: 60, y: 7.5, z: -60, width: 10, height: 15, length: 10, color: 0x0f172a },
+    // POI 2: Outpost Omega Pillboxes (North-East x: 300, z: -300)
+    { id: 'outpost_bunker_base', x: 300, y: 2.0, z: -300, width: 40, height: 4, length: 40, color: 0x1e293b },
 
-    // POI 2: Underground Bunker / Tunnel Chamber (x: -60, z: -60) — Subterranean Floor Slabs
-    { id: 'bunker_floor_slab', x: -60, y: -4, z: -60, width: 22, height: 2, length: 22, color: 0x1e293b },
+    // POI 3: Industrial Complex (North-West x: -300, z: -300)
+    { id: 'industrial_plant_slab', x: -300, y: 1.5, z: -300, width: 56, height: 3, length: 40, color: 0x334155 },
 
-    // POI 3: Industrial Warehouses (x: -60, z: 60) — Twin CQB Structures
-    { id: 'warehouse_west', x: -74, y: 4, z: 60, width: 14, height: 8, length: 24, color: 0x334155 },
-    { id: 'warehouse_east', x: -46, y: 4, z: 60, width: 14, height: 8, length: 24, color: 0x334155 },
+    // POI 4: Quantum Core Anomalous Zone (South-West x: -300, z: 300)
+    { id: 'quantum_monolith_base', x: -300, y: 5.0, z: 300, width: 24, height: 10, length: 24, color: 0x0f172a },
 
-    // POI 4: CQB Courtyard Central Monument (x: 60, z: 60)
-    { id: 'courtyard_monument_base', x: 60, y: 0.5, z: 60, width: 6, height: 1, length: 6, color: 0x1e293b },
+    // POI 5: Transport Monorail Hub (South-East x: 300, z: 300)
+    { id: 'monorail_hub_deck', x: 300, y: 8.0, z: 300, width: 44, height: 4, length: 28, color: 0x1e293b },
   ],
 
-  // 3. True Triangular Prism Ramps
+  // 3. Buildings & Modular Architecture
+  singleLevelBuildings: [
+    { id: 'building_single_nw', x: -280, y: 3.0, z: -280, width: 16, height: 4, length: 20 },
+    { id: 'building_single_se', x: 280, y: 0, z: 280, width: 18, height: 4, length: 18 },
+  ],
+
+  twoLevelBuildings: [
+    { id: 'building_two_level_ind', x: -320, y: 0, z: -300, width: 24, height: 8, length: 24 },
+    { id: 'building_two_level_citadel', x: 60, y: 0, z: -60, width: 20, height: 8, length: 20 },
+  ],
+
+  movingPlatforms: [
+    { id: 'elevator_monorail', x: 300, baseY: 2.0, z: 300, width: 6, height: 0.4, length: 6, travelDistance: 6.0, speed: 1.2 },
+    { id: 'elevator_citadel', x: 0, baseY: 3.0, z: 26, width: 5, height: 0.4, length: 5, travelDistance: 5.0, speed: 1.5 },
+  ],
+
+  pillboxes: [
+    { id: 'pillbox_omega_1', x: 280, y: 4.0, z: -320, width: 8, height: 2.2, length: 8 },
+    { id: 'pillbox_omega_2', x: 320, y: 4.0, z: -280, width: 8, height: 2.2, length: 8 },
+  ],
+
+  // 4. True Triangular Prism Ramps
   ramps: [
-    // Ramps leading up to central platform from North and South
-    { id: 'ramp_center_south', x: 0, y: 0, z: 15, width: 6, height: 3, length: 12, rotationY: 0 },
-    { id: 'ramp_center_north', x: 0, y: 0, z: -15, width: 6, height: 3, length: 12, rotationY: Math.PI },
-    // Ramps leading to overlooks
-    { id: 'ramp_north_east', x: 18, y: 0, z: -50, width: 5, height: 7, length: 20, rotationY: Math.PI / 2 },
-    { id: 'ramp_south_west', x: -18, y: 0, z: 50, width: 5, height: 7, length: 20, rotationY: -Math.PI / 2 },
-
-    // Underground Bunker Access Ramps (sloping into subterranean chamber y: -5m)
-    { id: 'bunker_ramp_north', x: -60, y: -2.5, z: -77, width: 8, height: 5, length: 16, rotationY: 0 },
-    { id: 'bunker_ramp_south', x: -60, y: -2.5, z: -43, width: 8, height: 5, length: 16, rotationY: Math.PI },
+    { id: 'ramp_citadel_south', x: 0, y: 0, z: 30, width: 8, height: 6, length: 16, rotationY: 0 },
+    { id: 'ramp_citadel_north', x: 0, y: 0, z: -30, width: 8, height: 6, length: 16, rotationY: Math.PI },
+    { id: 'ramp_monorail_east', x: 326, y: 0, z: 300, width: 6, height: 8, length: 20, rotationY: Math.PI / 2 },
   ],
 
-  // 4. Pillars
-  pillars: [
-    { id: 'pillar_nw', x: -40, y: 5, z: -40, radius: 1.5, height: 10 },
-    { id: 'pillar_ne', x: 40, y: 5, z: -40, radius: 1.5, height: 10 },
-    { id: 'pillar_sw', x: -40, y: 5, z: 40, radius: 1.5, height: 10 },
-    { id: 'pillar_se', x: 40, y: 5, z: 40, radius: 1.5, height: 10 },
-    { id: 'pillar_inner_w', x: -28, y: 5, z: 0, radius: 1.4, height: 10 },
-    { id: 'pillar_inner_e', x: 28, y: 5, z: 0, radius: 1.4, height: 10 },
-
-    // CQB Courtyard Central Pillar Monument
-    { id: 'courtyard_pillar', x: 60, y: 3.5, z: 60, radius: 2.0, height: 6 },
-  ],
-
-  // 5. Tactical Cover Short Walls & CQB Barriers
+  // 5. Tactical Cover Walls (Full 2.2m Height & Short Barriers)
   coverWalls: [
-    { x: -12, y: 3.5, z: 0, width: 0.4, height: 1.0, length: 6, rotationY: 0 },
-    { x: 12, y: 3.5, z: 0, width: 0.4, height: 1.0, length: 6, rotationY: 0 },
-    { x: 0, y: 3.5, z: -7, width: 6, height: 1.0, length: 0.4, rotationY: 0 },
-    { x: 0, y: 3.5, z: 7, width: 6, height: 1.0, length: 0.4, rotationY: 0 },
+    // Full player-height cover walls (height: 2.2m)
+    { x: -15, y: 6.0, z: 0, width: 0.5, height: 2.2, length: 8, rotationY: 0, fullCover: true },
+    { x: 15, y: 6.0, z: 0, width: 0.5, height: 2.2, length: 8, rotationY: 0, fullCover: true },
+    { x: 300, y: 4.0, z: -280, width: 8, height: 2.2, length: 0.5, rotationY: 0, fullCover: true },
+    { x: -300, y: 3.0, z: -270, width: 12, height: 2.2, length: 0.5, rotationY: 0, fullCover: true },
+
+    // Short tactical walls
     { x: -25, y: 0.5, z: -25, width: 8, height: 1.0, length: 0.4, rotationY: Math.PI / 4 },
     { x: 25, y: 0.5, z: -25, width: 8, height: 1.0, length: 0.4, rotationY: -Math.PI / 4 },
     { x: -25, y: 0.5, z: 25, width: 8, height: 1.0, length: 0.4, rotationY: -Math.PI / 4 },
     { x: 25, y: 0.5, z: 25, width: 8, height: 1.0, length: 0.4, rotationY: Math.PI / 4 },
-    { x: -50, y: 0.5, z: 0, width: 0.4, height: 1.0, length: 10, rotationY: 0 },
-    { x: 50, y: 0.5, z: 0, width: 0.4, height: 1.0, length: 10, rotationY: 0 },
-
-    // CQB Courtyard Perimeter Barriers (x: 60, z: 60)
-    { x: 52, y: 0.6, z: 60, width: 0.4, height: 1.2, length: 10, rotationY: 0 },
-    { x: 68, y: 0.6, z: 60, width: 0.4, height: 1.2, length: 10, rotationY: 0 },
-    { x: 60, y: 0.6, z: 52, width: 10, height: 1.2, length: 0.4, rotationY: 0 },
-    { x: 60, y: 0.6, z: 68, width: 10, height: 1.2, length: 0.4, rotationY: 0 },
   ],
 
-  // 6. Elevated Walkways
+  // 6. Pillars & Monoliths
+  pillars: [
+    { id: 'pillar_citadel_nw', x: -20, y: 6, z: -20, radius: 1.8, height: 12 },
+    { id: 'pillar_citadel_ne', x: 20, y: 6, z: -20, radius: 1.8, height: 12 },
+    { id: 'pillar_citadel_sw', x: -20, y: 6, z: 20, radius: 1.8, height: 12 },
+    { id: 'pillar_citadel_se', x: 20, y: 6, z: 20, radius: 1.8, height: 12 },
+  ],
+
+  // 7. Elevated Walkways
   walkways: [
-    { id: 'walkway_north', x1: -40, y1: 10, z1: -40, x2: 40, y2: 10, z2: -40, width: 2.5, thickness: 0.4 },
-    { id: 'walkway_south', x1: -40, y1: 10, z1: 40, x2: 40, y2: 10, z2: 40, width: 2.5, thickness: 0.4 },
-    { id: 'walkway_west',  x1: -40, y1: 10, z1: -40, x2: -40, y2: 10, z2: 40, width: 2.5, thickness: 0.4 },
-    { id: 'walkway_east',  x1: 40, y1: 10, z1: -40, x2: 40, y2: 10, z2: 40, width: 2.5, thickness: 0.4 },
-
-    // Warehouse Catwalk Bridge (x: -60, z: 60)
-    { id: 'warehouse_catwalk', x1: -74, y1: 4, z1: 60, x2: -46, y2: 4, z2: 60, width: 3.0, thickness: 0.4 },
+    { id: 'walkway_citadel_n', x1: -20, y1: 12, z1: -20, x2: 20, y2: 12, z2: -20, width: 3.0, thickness: 0.4 },
+    { id: 'walkway_citadel_s', x1: -20, y1: 12, z1: 20, x2: 20, y2: 12, z2: 20, width: 3.0, thickness: 0.4 },
+    { id: 'walkway_monorail_bridge', x1: 300, y1: 10, z1: 280, x2: 300, y2: 10, z2: 320, width: 3.0, thickness: 0.4 },
   ],
 
-  // 7. Vertical Climbable Ladders
+  // 8. Vertical Climbable Ladders
   ladders: [
-    { id: 'ladder_north_overlook', x: 0, z: -43.8, yStart: 0, yEnd: 7.2, rotationY: Math.PI },
-    { id: 'ladder_south_overlook', x: 0, z: 43.8, yStart: 0, yEnd: 7.2, rotationY: 0 },
-    { id: 'ladder_pillar_nw', x: -40, z: -41.6, yStart: 0, yEnd: 10.5, rotationY: Math.PI },
-    { id: 'ladder_pillar_se', x: 40, z: 41.6, yStart: 0, yEnd: 10.5, rotationY: 0 },
-    { id: 'ladder_pillar_ne', x: 41.6, z: -40, yStart: 0, yEnd: 10.5, rotationY: -Math.PI / 2 },
-    { id: 'ladder_pillar_sw', x: -41.6, z: 40, yStart: 0, yEnd: 10.5, rotationY: Math.PI / 2 },
-
-    // Sniper Outpost Tower Access Ladder (y: 0 to 15.2m)
-    { id: 'ladder_sniper_tower', x: 60, z: -54.8, yStart: 0, yEnd: 15.2, rotationY: 0 },
+    { id: 'ladder_citadel_hub', x: 0, z: -24.1, yStart: 0, yEnd: 12.0, rotationY: Math.PI },
+    { id: 'ladder_monorail_hub', x: 300, z: 285.8, yStart: 0, yEnd: 10.0, rotationY: 0 },
+    { id: 'ladder_industrial_plant', x: -320, z: -312.1, yStart: 0, yEnd: 8.0, rotationY: Math.PI },
+    { id: 'ladder_building_single', x: -280, z: -290.1, yStart: 0, yEnd: 4.0, rotationY: 0 },
   ],
 
-  // 8. Interactive Ziplines
+  // 9. Interactive Ziplines
   ziplines: [
-    { id: 'zip_nw_to_center', start: [-40, 11.4, -40], end: [0, 4.4, 0], speed: 32.0 },
-    { id: 'zip_se_to_center', start: [40, 11.4, 40], end: [0, 4.4, 0], speed: 32.0 },
-    { id: 'zip_north_cross', start: [-40, 11.4, -40], end: [40, 11.4, -40], speed: 32.0 },
-    { id: 'zip_south_cross', start: [40, 11.4, 40], end: [-40, 11.4, 40], speed: 32.0 },
-
-    // Long-distance zipline from Sniper Tower down to Central Platform
-    { id: 'zip_sniper_to_center', start: [60, 15.4, -60], end: [0, 4.4, 0], speed: 36.0 },
+    { id: 'zip_citadel_to_omega', start: [0, 12.4, 0], end: [300, 4.4, -300], speed: 36.0 },
+    { id: 'zip_citadel_to_industrial', start: [0, 12.4, 0], end: [-300, 3.4, -300], speed: 36.0 },
+    { id: 'zip_monorail_to_citadel', start: [300, 10.4, 300], end: [0, 6.4, 0], speed: 36.0 },
+    { id: 'zip_quantum_to_citadel', start: [-300, 10.4, 300], end: [0, 6.4, 0], speed: 36.0 },
   ]
 };
 
@@ -280,23 +271,129 @@ export class TerrainManager {
       this.addMesh(ring);
     });
 
-    // 6. Build Tactical Cover Short Walls
-    this.config.coverWalls.forEach(w => {
-      const geo = new THREE.BoxGeometry(w.width, w.height, w.length);
-      const mesh = new THREE.Mesh(geo, this.materials.wall);
-      mesh.position.set(w.x, w.y, w.z);
-      mesh.rotation.y = w.rotationY || 0;
-      this.addMesh(mesh);
+    // 5. Tactical Cover Walls (Full 2.2m Height & Short Barriers)
+    if (this.config.coverWalls) {
+      this.config.coverWalls.forEach(c => {
+        const geo = new THREE.BoxGeometry(c.width, c.height, c.length);
+        const mat = c.fullCover ? this.materials.wall : this.materials.platform;
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(c.x, c.y, c.z);
+        if (c.rotationY) mesh.rotation.y = c.rotationY;
+        this.addMesh(mesh);
 
-      // Trim line along top of cover wall
-      const trimGeo = new THREE.BoxGeometry(w.width + 0.05, 0.1, w.length + 0.05);
-      const trim = new THREE.Mesh(trimGeo, this.materials.accent);
-      trim.position.set(w.x, w.y + w.height / 2, w.z);
-      trim.rotation.y = w.rotationY || 0;
-      this.addMesh(trim);
-    });
+        if (c.fullCover) {
+          const trimGeo = new THREE.BoxGeometry(c.width + 0.1, 0.1, c.length + 0.1);
+          const trim = new THREE.Mesh(trimGeo, this.materials.accent);
+          trim.position.set(c.x, c.y + c.height / 2, c.z);
+          if (c.rotationY) trim.rotation.y = c.rotationY;
+          this.addMesh(trim);
+        }
+      });
+    }
 
-    // 7. Build Elevated Pillar Walkways (Open sky bridges without vertical side walls)
+    // 6. Single-Level Cyberpunk Buildings
+    if (this.config.singleLevelBuildings) {
+      this.config.singleLevelBuildings.forEach(b => {
+        const wallMat = this.materials.wall;
+        const thickness = 0.4;
+        const halfW = b.width / 2;
+        const halfL = b.length / 2;
+
+        const wallN = new THREE.Mesh(new THREE.BoxGeometry(b.width, b.height, thickness), wallMat);
+        wallN.position.set(b.x, b.y + b.height / 2, b.z - halfL);
+        this.addMesh(wallN);
+
+        const wallS = new THREE.Mesh(new THREE.BoxGeometry(b.width, b.height, thickness), wallMat);
+        wallS.position.set(b.x, b.y + b.height / 2, b.z + halfL);
+        this.addMesh(wallS);
+
+        const wallE = new THREE.Mesh(new THREE.BoxGeometry(thickness, b.height, b.length), wallMat);
+        wallE.position.set(b.x + halfW, b.y + b.height / 2, b.z);
+        this.addMesh(wallE);
+
+        const wallW = new THREE.Mesh(new THREE.BoxGeometry(thickness, b.height, b.length), wallMat);
+        wallW.position.set(b.x - halfW, b.y + b.height / 2, b.z);
+        this.addMesh(wallW);
+
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(b.width, 0.4, b.length), this.materials.platform);
+        roof.position.set(b.x, b.y + b.height, b.z);
+        this.addMesh(roof);
+      });
+    }
+
+    // 7. Two-Level Cyberpunk Buildings with Internal 45° Staircases
+    if (this.config.twoLevelBuildings) {
+      this.config.twoLevelBuildings.forEach(b => {
+        const wallMat = this.materials.wall;
+        const thickness = 0.4;
+        const halfW = b.width / 2;
+        const halfL = b.length / 2;
+        const floorH = b.height / 2;
+
+        const wallN = new THREE.Mesh(new THREE.BoxGeometry(b.width, b.height, thickness), wallMat);
+        wallN.position.set(b.x, b.y + b.height / 2, b.z - halfL);
+        this.addMesh(wallN);
+
+        const wallS = new THREE.Mesh(new THREE.BoxGeometry(b.width, b.height, thickness), wallMat);
+        wallS.position.set(b.x, b.y + b.height / 2, b.z + halfL);
+        this.addMesh(wallS);
+
+        const wallE = new THREE.Mesh(new THREE.BoxGeometry(thickness, b.height, b.length), wallMat);
+        wallE.position.set(b.x + halfW, b.y + b.height / 2, b.z);
+        this.addMesh(wallE);
+
+        const wallW = new THREE.Mesh(new THREE.BoxGeometry(thickness, b.height, b.length), wallMat);
+        wallW.position.set(b.x - halfW, b.y + b.height / 2, b.z);
+        this.addMesh(wallW);
+
+        const midFloor = new THREE.Mesh(new THREE.BoxGeometry(b.width - 6, 0.4, b.length), this.materials.platform);
+        midFloor.position.set(b.x + 3, b.y + floorH, b.z);
+        this.addMesh(midFloor);
+
+        const stairGeo = createTriangularRampGeometry(4, floorH, 8);
+        const stairMesh = new THREE.Mesh(stairGeo, this.materials.ramp);
+        stairMesh.position.set(b.x - halfW + 3, b.y, b.z);
+        this.addMesh(stairMesh);
+
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(b.width, 0.4, b.length), this.materials.platform);
+        roof.position.set(b.x, b.y + b.height, b.z);
+        this.addMesh(roof);
+      });
+    }
+
+    // 8. Moving Elevator Platforms
+    this.movingPlatforms = [];
+    if (this.config.movingPlatforms) {
+      this.config.movingPlatforms.forEach(p => {
+        const geo = new THREE.BoxGeometry(p.width, p.height, p.length);
+        const mesh = new THREE.Mesh(geo, this.materials.accent);
+        mesh.position.set(p.x, p.baseY, p.z);
+        this.addMesh(mesh);
+        this.movingPlatforms.push({ ...p, mesh });
+      });
+    }
+
+    // 9. Fortified Pillboxes / Bunkers with 0.3m Firing Slits
+    if (this.config.pillboxes) {
+      this.config.pillboxes.forEach(p => {
+        const wallMat = this.materials.wall;
+        const thickness = 0.5;
+        const halfW = p.width / 2;
+        const halfL = p.length / 2;
+
+        const wallN = new THREE.Mesh(new THREE.BoxGeometry(p.width, 0.9, thickness), wallMat);
+        wallN.position.set(p.x, p.y + 0.45, p.z - halfL);
+        this.addMesh(wallN);
+
+        const wallS = new THREE.Mesh(new THREE.BoxGeometry(p.width, 0.9, thickness), wallMat);
+        wallS.position.set(p.x, p.y + 0.45, p.z + halfL);
+        this.addMesh(wallS);
+
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(p.width + 0.8, 0.5, p.length + 0.8), this.materials.platform);
+        roof.position.set(p.x, p.y + p.height, p.z);
+        this.addMesh(roof);
+      });
+    }
     this.config.walkways.forEach(wk => {
       const start = new THREE.Vector3(wk.x1, wk.y1, wk.z1);
       const end = new THREE.Vector3(wk.x2, wk.y2, wk.z2);
@@ -406,6 +503,41 @@ export class TerrainManager {
     });
   }
 
+  getRaycastTarget(raycaster) {
+    const interactableMeshes = [];
+
+    for (const zip of this.ziplines) {
+      if (zip.startHandle) {
+        zip.startHandle.userData.terrainInteractable = { type: 'zipline', data: zip, startProgress: 0.0, dirSign: 1 };
+        interactableMeshes.push(zip.startHandle);
+      }
+      if (zip.endHandle) {
+        zip.endHandle.userData.terrainInteractable = { type: 'zipline', data: zip, startProgress: 1.0, dirSign: -1 };
+        interactableMeshes.push(zip.endHandle);
+      }
+    }
+
+    for (const lad of this.ladders) {
+      if (lad.meshGroup) {
+        lad.meshGroup.traverse(child => {
+          if (child.isMesh) {
+            child.userData.terrainInteractable = { type: 'ladder', data: lad };
+            interactableMeshes.push(child);
+          }
+        });
+      }
+    }
+
+    const hits = raycaster.intersectObjects(interactableMeshes, false);
+    if (hits.length > 0 && hits[0].distance <= 3.5) {
+      const targetData = hits[0].object.userData.terrainInteractable;
+      if (targetData) {
+        return { ...targetData, dist: hits[0].distance };
+      }
+    }
+    return null;
+  }
+
   // Get closest interactable zipline or ladder near player position
   getClosestInteractable(playerPos, cameraDir) {
     let closest = null;
@@ -489,6 +621,17 @@ export class TerrainManager {
     // Rebuild Octree physics graph node
     if (this.gameScene && this.gameScene.worldOctree) {
       this.gameScene.worldOctree.fromGraphNode(this.environmentGroup);
+    }
+  }
+
+  update(deltaTime) {
+    if (!this.movingPlatforms) return;
+    this.animTime = (this.animTime || 0) + deltaTime;
+    for (const p of this.movingPlatforms) {
+      if (p.mesh) {
+        const offset = Math.sin(this.animTime * p.speed) * (p.travelDistance / 2);
+        p.mesh.position.y = p.baseY + (p.travelDistance / 2) + offset;
+      }
     }
   }
 }

@@ -20,7 +20,7 @@ export class Controls {
       reload: 'KeyR',
       melee: 'KeyX',
       inventory: 'KeyI',
-      interact: 'KeyF',
+      interact: 'KeyE',
       drop: 'KeyQ',
       slot1: 'Digit1',
       slot2: 'Digit2',

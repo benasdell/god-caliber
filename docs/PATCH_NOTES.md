@@ -1,13 +1,14 @@
 # 📜 God-Caliber — Master Patch Notes & Release Changelog
 
-> **Complete Version History**: Patch 0.1.0 to Patch 0.3.7 (Bastion)  
+> **Complete Version History**: Patch 0.1.0 to Patch 0.3.8 (Thunderbird)  
 > **Engine**: Three.js (v0.170.0) + Vite (v5.4.0) + PeerJS WebRTC
 
 ---
 
 ## Table of Contents
 
-- [Patch 0.3 Series — Multiplayer, Vision & Bastion Security](#-patch-03-series--multiplayer-vision--bastion-security)
+- [Patch 0.3 Series — Multiplayer, Vision & Thunderbird World](#-patch-03-series--multiplayer-vision--thunderbird-world)
+  - [Sub-Patch 0.3.8 — "Thunderbird" Modeling, Procedural Terrain & Interaction Overhaul](#sub-patch-038--thunderbird-modeling-procedural-terrain--interaction-overhaul)
   - [Sub-Patch 0.3.7 — "Bastion" Security Hardening & Performance Overhaul](#sub-patch-037--bastion-security-hardening--performance-overhaul)
   - [Sub-Patch 0.3.6 — Project Rename & Remote Integration](#sub-patch-036--project-rename--remote-integration)
   - [Sub-Patch 0.3.5 — WebRTC PeerJS WAN Networking & TURN Relays](#sub-patch-035--webrtc-peerjs-wan-networking--turn-relays)
@@ -25,7 +26,24 @@
 
 ---
 
-## 🛡️ Patch 0.3 Series — Multiplayer, Vision & Bastion Security
+## 🛡️ Patch 0.3 Series — Multiplayer, Vision & Thunderbird World
+
+### Sub-Patch 0.3.8 — "Thunderbird" Modeling, Procedural Terrain & Interaction Overhaul
+*Release Date: August 2026*
+
+* **1000x1000m Map Expansion & 5 POIs**:
+  - Expanded world bounds from `240x240m` to `1000x1000m` with `18m` perimeter walls.
+  - Constructed 5 Points of Interest (POIs): *Sector Zero Citadel*, *Outpost Omega Pillboxes*, *Industrial Complex*, *Quantum Core Zone*, and *Transport Monorail Hub*.
+* **5 Modular Architectural Features**:
+  - Single-level Cyberpunk buildings, two-level buildings with internal 45° staircases, moving platform elevators, full player-height cover walls (`2.2m`), and fortified pillboxes with `0.3m` firing slits.
+* **Crosshair-Based Raycast Interaction System**:
+  - Replaced radial proximity with camera-center crosshair raycasting (up to 3.5m) against loot, chests, ziplines, and ladders via `getRaycastTarget(raycaster)`.
+  - Updated interact keybinding to **`KeyE`** (`[E]` interact).
+* **Ladder Alignment & Zipline Fixes**:
+  - Corrected ladder outward normal calculation (`_tempDir.set(0, 0, 1)`) snapping player `0.65m` directly in front facing climbable side.
+  - Raised zipline handles `1.5m` above platform edges with `1.2m` dismount pushes.
+* **BR Death Circle Rescaling**:
+  - Rescaled initial circle radius from `80m` to `450m` across 5 shrinking stages (`450m` → `280m` → `160m` → `80m` → `25m` → `5m`).
 
 ### Sub-Patch 0.3.7 — "Bastion" Security Hardening & Performance Overhaul
 *Release Date: August 2026*

@@ -54,4 +54,16 @@
 - **Zero Allocation Invariants in High-Frequency Loops**:
   Instantiating `new THREE.Vector3()`, `new THREE.Ray()`, or creating new `AudioBuffer` float arrays inside `animate()`, `getClosestInteractable()`, `spawnBullet()`, or `playGunshot()` triggers garbage collection spikes. Preallocate static scratch variables at module scope.
 
+---
+
+## 6. Procedural Terrain & Crosshair Interaction Invariants (Sub-Patch 0.3.8 Thunderbird)
+
+- **Ladder Outward Normal Direction Invariant**:
+  When calculating ladder mounting offsets or checking outward climbable faces, the outward normal MUST face away from the attached surface (`_tempDir.set(0, 0, 1).applyAxisAngle(_axisY, rotationY)`). Inverting this vector (`0, 0, -1`) snaps the player capsule INSIDE wall/pillar geometry.
+- **Crosshair Raycast Selection over Radial Proximity**:
+  Targeting interactive objects (chests, items, ladders, ziplines) near each other requires camera-center raycasting (`raycaster.setFromCamera(Vector2(0,0), camera)` up to 3.5m). Pure radial proximity causes selection overlap when multiple interactables sit within 2m of each other.
+- **1000m Map Circle & Physics Bounds Synchronization**:
+  When expanding map bounds, update `TESTING_ARENA_CONFIG.ground` and rebuild the Octree physics node (`worldOctree.fromGraphNode(environmentGroup)`). Always scale the Battle Royale circle initial radius (`450m`) to match the expanded perimeter bounds.
+
+
 

@@ -166,9 +166,9 @@ export class Player {
       let climbVel = 0;
 
       // Offset player 0.6m outward from the ladder wall face so capsule never clips into pillar mesh
-      const outwardNormal = _tempDir.set(0, 0, -1).applyAxisAngle(_axisY, lad.rotationY || 0);
-      const targetX = lad.x + outwardNormal.x * 0.6;
-      const targetZ = lad.z + outwardNormal.z * 0.6;
+      const outwardNormal = _tempDir.set(0, 0, 1).applyAxisAngle(_axisY, lad.rotationY || 0);
+      const targetX = lad.x + outwardNormal.x * 0.65;
+      const targetZ = lad.z + outwardNormal.z * 0.65;
 
       // Vertical input
       if (controls.keyState.forward) climbVel += climbSpeed;
@@ -555,10 +555,10 @@ export class Player {
     this.velocity.set(0, 0, 0);
     this.onGround = false;
 
-    // Instant 0.6m outward snap along outer normal to prevent mesh clipping on attach
-    const outwardNormal = _tempDir.set(0, 0, -1).applyAxisAngle(_axisY, ladderData.rotationY || 0);
-    const targetX = ladderData.x + outwardNormal.x * 0.6;
-    const targetZ = ladderData.z + outwardNormal.z * 0.6;
+    // Instant 0.65m outward snap along outer normal to prevent mesh clipping on attach
+    const outwardNormal = _tempDir.set(0, 0, 1).applyAxisAngle(_axisY, ladderData.rotationY || 0);
+    const targetX = ladderData.x + outwardNormal.x * 0.65;
+    const targetZ = ladderData.z + outwardNormal.z * 0.65;
 
     this.collider.start.x = targetX;
     this.collider.start.z = targetZ;

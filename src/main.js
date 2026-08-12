@@ -532,7 +532,6 @@ class Game {
     } else {
       this.dropKeyWasPressed = false;
     }
-
     // 4. Weapon Slot Switching (Key 1 & Key 2)
     if (this.controls.isLocked) {
       if (this.controls.keyState.slot1) {
@@ -540,64 +539,90 @@ class Game {
       } else if (this.controls.keyState.slot2) {
         this.switchWeaponSlot('secondary');
       }
-    }
 
-    // 4. Interact / Pick Up Ground Items, Ziplines & Ladders (Key F)
-    if (this.controls.keyState.interact && this.controls.isLocked) {
-      if (!this.interactKeyWasPressed) {
-        this.interactKeyWasPressed = true;
+      // 5. Crosshair Raycast Interaction (Key E)
+      if (this.controls.keyState.interact) {
+        if (!this.interactKeyWasPressed) {
+          this.interactKeyWasPressed = true;
 
-        const playerPos = this.player.camera.position;
-        const cameraDir = new THREE.Vector3();
-        this.player.camera.getWorldDirection(cameraDir);
+          const activeTarget = this.getActiveInteraction();
 
-        const terrainObj = this.sceneManager.terrainManager ? this.sceneManager.terrainManager.getClosestInteractable(playerPos, cameraDir) : null;
-        const closestLoot = this.worldItemManager.getClosestInteractable(playerPos);
-
-        const distToLoot = closestLoot ? playerPos.distanceTo(closestLoot.meshGroup.position) : Infinity;
-        const distToTerrain = terrainObj && terrainObj.dist !== undefined ? terrainObj.dist : Infinity;
-
-        const isLootPrioritized = closestLoot && (!terrainObj || distToLoot < distToTerrain);
-
-        if (isLootPrioritized) {
-          const item = closestLoot.itemData;
-          if (item.isChest) {
-            this.openChest(closestLoot);
-          } else {
-            const space = this.inventory.findEmptySpace(item);
-            if (space) {
-              this.inventory.addItem(item, space.row, space.col);
-              this.worldItemManager.removeItem(closestLoot);
-              this.ui.addKillFeed(`ACQUIRED ${item.name}`);
-              sound.playReload();
-              this.inventoryUI.applyEquipmentStats();
-              this.inventoryUI.renderItems();
+          if (activeTarget && activeTarget.type === 'loot') {
+            const closestLoot = activeTarget.data;
+            const item = closestLoot.itemData;
+            if (item.isChest) {
+              this.openChest(closestLoot);
             } else {
-              this.ui.addKillFeed("⚠️ INVENTORY GRID STORAGE FULL!");
-              sound.playEmpty();
+              const space = this.inventory.findEmptySpace(item);
+              if (space) {
+                this.inventory.addItem(item, space.row, space.col);
+                this.worldItemManager.removeItem(closestLoot);
+                this.ui.addKillFeed(`ACQUIRED ${item.name}`);
+                sound.playReload();
+                this.inventoryUI.applyEquipmentStats();
+                this.inventoryUI.renderItems();
+              } else {
+                this.ui.addKillFeed("⚠️ INVENTORY GRID STORAGE FULL!");
+                sound.playEmpty();
+              }
             }
-          }
-        } else if (terrainObj) {
-          if (terrainObj.type === 'zipline') {
-            if (this.player.isZiplining) {
-              this.player.detachZipline(true);
-            } else {
-              this.player.attachZipline(terrainObj.data, terrainObj.startProgress, terrainObj.dirSign);
-              this.ui.addKillFeed("⚡ ATTACHED TO ZIPLINE!");
-            }
-          } else if (terrainObj.type === 'ladder') {
-            if (this.player.isClimbingLadder) {
-              this.player.detachLadder();
-            } else {
-              this.player.attachLadder(terrainObj.data);
-              this.ui.addKillFeed("🪜 CLIMBING LADDER");
+          } else if (activeTarget && activeTarget.type === 'terrain') {
+            const terrainObj = activeTarget.data;
+            if (terrainObj.type === 'zipline') {
+              if (this.player.isZiplining) {
+                this.player.detachZipline(true);
+              } else {
+                this.player.attachZipline(terrainObj.data, terrainObj.startProgress, terrainObj.dirSign);
+                this.ui.addKillFeed("⚡ ATTACHED TO ZIPLINE!");
+              }
+            } else if (terrainObj.type === 'ladder') {
+              if (this.player.isClimbingLadder) {
+                this.player.detachLadder();
+              } else {
+                this.player.attachLadder(terrainObj.data);
+                this.ui.addKillFeed("🪜 CLIMBING LADDER");
+              }
             }
           }
         }
+      } else {
+        this.interactKeyWasPressed = false;
       }
-    } else {
-      this.interactKeyWasPressed = false;
     }
+  }
+
+  getActiveInteraction() {
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), this.player.camera);
+    raycaster.far = 3.5;
+
+    const lootRayHit = this.worldItemManager ? this.worldItemManager.getRaycastTarget(raycaster) : null;
+    const terrainRayHit = this.sceneManager.terrainManager ? this.sceneManager.terrainManager.getRaycastTarget(raycaster) : null;
+
+    if (lootRayHit && (!terrainRayHit || lootRayHit.dist <= terrainRayHit.dist)) {
+      return { type: 'loot', data: lootRayHit.item, dist: lootRayHit.dist };
+    }
+    if (terrainRayHit && (!lootRayHit || terrainRayHit.dist < lootRayHit.dist)) {
+      return { type: 'terrain', data: terrainRayHit, dist: terrainRayHit.dist };
+    }
+
+    const playerPos = this.player.camera.position;
+    this.player.camera.getWorldDirection(_scratchCameraDir);
+
+    const terrainObj = this.sceneManager.terrainManager ? this.sceneManager.terrainManager.getClosestInteractable(playerPos, _scratchCameraDir) : null;
+    const closestLoot = this.worldItemManager ? this.worldItemManager.getClosestInteractable(playerPos) : null;
+
+    const distToLoot = closestLoot ? playerPos.distanceTo(closestLoot.meshGroup.position) : Infinity;
+    const distToTerrain = terrainObj && terrainObj.dist !== undefined ? terrainObj.dist : Infinity;
+
+    if (closestLoot && distToLoot <= 1.8 && distToLoot <= distToTerrain) {
+      return { type: 'loot', data: closestLoot, dist: distToLoot };
+    }
+    if (terrainObj && distToTerrain <= 1.8) {
+      return { type: 'terrain', data: terrainObj, dist: distToTerrain };
+    }
+
+    return null;
   }
 
   switchWeaponSlot(slotName) {
@@ -777,24 +802,18 @@ class Game {
         this.network.update(deltaTime);
       }
 
-      // 6. Update World Items Physics
+      // 6. Update World Items & Terrain Moving Platforms Physics
       this.worldItemManager.update(deltaTime);
+      if (this.sceneManager.terrainManager) {
+        this.sceneManager.terrainManager.update(deltaTime);
+      }
 
-      // 7. Proximity Check for HUD Interaction Prompt (Zipline, Ladder, or Loot)
-      const playerPos = this.player.camera.position;
-      this.player.camera.getWorldDirection(_scratchCameraDir);
+      // 7. Raycast & Proximity Check for HUD Interaction Prompt (Zipline, Ladder, or Loot)
+      const activeTarget = this.getActiveInteraction();
 
-      const terrainObj = this.sceneManager.terrainManager ? this.sceneManager.terrainManager.getClosestInteractable(playerPos, _scratchCameraDir) : null;
-      const closestLoot = this.worldItemManager.getClosestInteractable(playerPos);
-
-      const distToLoot = closestLoot ? playerPos.distanceTo(closestLoot.meshGroup.position) : Infinity;
-      const distToTerrain = terrainObj && terrainObj.dist !== undefined ? terrainObj.dist : Infinity;
-
-      const isLootPrioritized = closestLoot && (!terrainObj || distToLoot < distToTerrain);
-
-      if (isLootPrioritized && this.interactPromptEl && this.interactActionEl) {
+      if (activeTarget && activeTarget.type === 'loot' && this.interactPromptEl && this.interactActionEl) {
         this.interactPromptEl.classList.remove('hidden');
-        const item = closestLoot.itemData;
+        const item = activeTarget.data.itemData;
         this.interactActionEl.style.color = item.borderColor || '#64748b';
         if (item.isChest) {
           this.interactActionEl.textContent = `OPEN ${item.name}`;
@@ -802,9 +821,10 @@ class Game {
           const rarityTag = item.rarity ? `[${item.rarity.toUpperCase()}]` : '[NORMAL]';
           this.interactActionEl.textContent = `PICK UP ${item.name} ${rarityTag}`;
         }
-      } else if (terrainObj && this.interactPromptEl && this.interactActionEl) {
+      } else if (activeTarget && activeTarget.type === 'terrain' && this.interactPromptEl && this.interactActionEl) {
         this.interactPromptEl.classList.remove('hidden');
         this.interactActionEl.style.color = '#00f0ff';
+        const terrainObj = activeTarget.data;
         if (terrainObj.type === 'zipline') {
           this.interactActionEl.textContent = `ATTACH TO ZIPLINE`;
         } else if (terrainObj.type === 'ladder') {

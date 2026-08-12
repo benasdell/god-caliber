@@ -307,6 +307,28 @@ export class WorldItemManager {
     }
   }
 
+  getRaycastTarget(raycaster) {
+    const meshes = [];
+    for (const g of this.groundItems) {
+      if (g.meshGroup) {
+        g.meshGroup.traverse(child => {
+          if (child.isMesh) {
+            child.userData.parentGroundItem = g;
+            meshes.push(child);
+          }
+        });
+      }
+    }
+    const hits = raycaster.intersectObjects(meshes, false);
+    if (hits.length > 0 && hits[0].distance <= 3.5) {
+      const parentItem = hits[0].object.userData.parentGroundItem;
+      if (parentItem) {
+        return { item: parentItem, dist: hits[0].distance };
+      }
+    }
+    return null;
+  }
+
   getClosestInteractable(playerPosition) {
     let closestItem = null;
     let minDist = 2.5;

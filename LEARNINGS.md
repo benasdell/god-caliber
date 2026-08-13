@@ -129,3 +129,15 @@
   Non-humanoid entities like flying drones must register their central mesh node (`droneCore`) as a bound bone node in `CharacterRig` and `HitboxManager` (`DRONE_CORE` hitbox).
 - **Raycast Collider Fallback Guarantee (Hotfix 0.3.10c)**:
   If a narrowphase limb raycast returns `null` (e.g. edge shots), fallback to checking `bot.collider` (bounding sphere). This guarantees no enemy is ever immune to player bullets.
+
+---
+
+## 12. Blender 5.2 MCP & GLTF Export Invariants (Patch 0.3.11 Model Pipeline)
+
+- **Null-Byte Delimited TCP Framing**:
+  Blender's socket server (`mcp_to_blender_server.py`) expects requests formatted as `{"type": "execute", "code": "...", "strict_json": false}\0`. Omission of the null-byte `\0` terminator causes socket `recv` to hang until timeout.
+- **Background Operator Context Overrides**:
+  When triggering operators like `bpy.ops.export_scene.gltf()` or `bpy.ops.render.render()` from background timer/socket threads, `bpy.context.window` and `bpy.context.active_object` default to `None`. Always wrap operator calls in `with bpy.context.temp_override(window=win, area=area_3d, active_object=root_obj):` to prevent `AttributeError: 'NoneType' object has no attribute 'cursor_set'`.
+- **Safe Scene Initialization Operator**:
+  Never use `bpy.ops.wm.read_factory_settings()` in automated Blender scripts, as it is blocked by Blender's LLM sandbox. Use `bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)` instead.
+

@@ -1,8 +1,12 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { sound } from './audio.js';
 
 // Preallocated static vectors
 const _targetOffsetZero = new THREE.Vector3(0, 0, 0);
+
+const GLTF_WEAPON_CACHE = {};
+const gltfLoader = new GLTFLoader();
 
 const WEAPON_MATERIAL_CACHE = {
   receiver: new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.85, roughness: 0.25 }),
@@ -17,7 +21,8 @@ Object.values(WEAPON_MATERIAL_CACHE).forEach(m => { m._isCached = true; });
 // Easy to read, edit, balance, and add new weapons in the future
 export const WEAPON_BLUEPRINTS = {
   weapon_ar15: {
-    name: 'COMBAT RIFLE',
+    name: 'VORTEX ASSAULT RIFLE',
+    modelUrl: '/models/vortex_rifle.glb',
     magazineCapacity: 50,
     fireRate: 0.1333, // 450 RPM
     reloadDuration: 1.2,
@@ -35,7 +40,7 @@ export const WEAPON_BLUEPRINTS = {
     magazineCapacity: 15,
     fireRate: 0.3, // 200 RPM
     reloadDuration: 0.9,
- baseDamage: 20,
+    baseDamage: 20,
     isSniper: false,
     isShotgun: false,
     spread: 0.01,
@@ -182,11 +187,57 @@ export class Weapon {
 
     this.muzzlePoint.copy(this.currentBlueprint.muzzleOffset);
 
-    // Call procedural mesh builder
-    this.buildProceduralModel(baseId);
+    const modelUrl = this.currentBlueprint?.modelUrl;
+    if (modelUrl) {
+      if (GLTF_WEAPON_CACHE[modelUrl]) {
+        this.attachGLTFModel(GLTF_WEAPON_CACHE[modelUrl]);
+      } else {
+        // Build procedural fallback model first while loading GLTF
+        this.buildProceduralModel(baseId);
+
+        gltfLoader.load(modelUrl, (gltf) => {
+          GLTF_WEAPON_CACHE[modelUrl] = gltf;
+          if (this.currentWeaponType === baseId) {
+            while (this.weaponGroup.children.length > 0) {
+              const child = this.weaponGroup.children[0];
+              this.weaponGroup.remove(child);
+              child.traverse((c) => {
+                if (c.geometry) c.geometry.dispose();
+                if (c.material && !c.material._isCached) {
+                  if (Array.isArray(c.material)) c.material.forEach(m => m.dispose());
+                  else c.material.dispose();
+                }
+              });
+            }
+            this.attachGLTFModel(gltf);
+            this.createMuzzleFlash();
+          }
+        }, undefined, (err) => {
+          console.warn('Failed to load weapon GLTF model, using procedural fallback:', err);
+        });
+      }
+    } else {
+      // Call procedural mesh builder
+      this.buildProceduralModel(baseId);
+    }
 
     // Attach lighting & visual muzzle flash planes
     this.createMuzzleFlash();
+  }
+
+  attachGLTFModel(gltf) {
+    const model = gltf.scene.clone(true);
+    model.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+      if (child.name === 'muzzleTip' || child.name === 'muzzle_socket') {
+        child.getWorldPosition(this.muzzlePoint);
+      }
+    });
+
+    this.weaponGroup.add(model);
   }
 
   buildProceduralModel(baseId) {

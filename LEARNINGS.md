@@ -117,3 +117,9 @@
   Never execute high-poly or multi-part raycasts against all scene meshes directly. Test an entity's broadphase bounding sphere (`R=1.15m`) first. Only if the ray intersects the sphere should narrowphase matrix-transformed bone local OBB checks be evaluated.
 - **Instanced Billboard Health Bars**:
   To render overhead status bars for mass entities, use a single `InstancedMesh` with a spherical camera-facing GLSL shader (`InstancedHealthBars`). Updating typed instance buffer attributes (`instancePosition`, `instanceHpRatio`) achieves 60-120+ FPS with 1 single WebGL draw call.
+- **Binding Entity Mesh Groups to CharacterRig (Hotfix 0.3.10b)**:
+  Always bind active entity mesh groups directly to `CharacterRig` (`new CharacterRig('PROCEDURAL', color, group)`). Creating a disconnected rig leaves bone matrices at origin `(0,0,0)`, causing bullet raycasts to miss enemies.
+- **Centering Instanced Billboard Quads (Hotfix 0.3.10b)**:
+  In GLSL vertex shaders for `PlaneGeometry` billboard quads, do NOT subtract `0.5` from `position.x`, as `PlaneGeometry` vertices are already centered at origin `0`. Subtracting `0.5` biases health bars to the left.
+- **AI Weapon Socket & Muzzle Tip Extraction (Hotfix 0.3.10b)**:
+  Humanoid enemies must carry a 3D weapon model attached to `weaponSocket` with a named `muzzleTip` child node. Extracting `muzzleTip.getWorldPosition(worldPos)` provides accurate firing origins and muzzle flash FX.

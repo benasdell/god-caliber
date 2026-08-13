@@ -256,6 +256,7 @@ export class ProceduralHumanoidFactory {
 
     // --- 1. TORSO & CHEST ARMOR GRAPH ---
     const torsoGroup = new THREE.Group();
+    torsoGroup.name = 'torsoGroup';
     torsoGroup.position.set(0, 1.05, 0);
 
     const torsoMesh = new THREE.Mesh(GEOMETRY_CACHE.torso, bodyMat);
@@ -278,6 +279,7 @@ export class ProceduralHumanoidFactory {
 
     // --- 2. HEAD & NEON VISOR GRAPH ---
     const headGroup = new THREE.Group();
+    headGroup.name = 'headGroup';
     headGroup.position.set(0, 1.68, 0);
 
     const headMesh = new THREE.Mesh(GEOMETRY_CACHE.head, bodyMat);
@@ -303,6 +305,7 @@ export class ProceduralHumanoidFactory {
     // --- 3. UPPER & LOWER ARMS WITH SHOULDER/ELBOW JOINTS ---
     // Left Arm
     const leftArmGroup = new THREE.Group();
+    leftArmGroup.name = 'leftArmGroup';
     leftArmGroup.position.set(-0.33, 1.35, 0);
 
     const shoulderL = new THREE.Mesh(GEOMETRY_CACHE.jointSphere, jointMat);
@@ -334,6 +337,7 @@ export class ProceduralHumanoidFactory {
 
     // Right Arm (Armed)
     const rightArmGroup = new THREE.Group();
+    rightArmGroup.name = 'rightArmGroup';
     rightArmGroup.position.set(0.33, 1.35, 0);
 
     const shoulderR = new THREE.Mesh(GEOMETRY_CACHE.jointSphere, jointMat);
@@ -362,10 +366,39 @@ export class ProceduralHumanoidFactory {
     handR.position.set(0.04, -0.62, 0.22);
     rightArmGroup.add(handR);
 
-    // Weapon Socket Node
+    // Weapon Socket Node with 3D Assault Rifle Model
     const weaponSocket = new THREE.Group();
     weaponSocket.name = 'weaponSocket';
     weaponSocket.position.set(0.04, -0.62, 0.25);
+
+    const rifleGroup = new THREE.Group();
+    rifleGroup.name = 'assaultRifle';
+
+    const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.12, 0.38), armorMat);
+    receiver.castShadow = true;
+    rifleGroup.add(receiver);
+
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.40, 8), jointMat);
+    barrel.rotation.x = Math.PI / 2;
+    barrel.position.set(0, 0.02, 0.35);
+    barrel.castShadow = true;
+    rifleGroup.add(barrel);
+
+    const mag = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.18, 0.08), bodyMat);
+    mag.position.set(0, -0.12, 0.08);
+    mag.rotation.x = 0.25;
+    rifleGroup.add(mag);
+
+    const scope = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 0.12), visorMat);
+    scope.position.set(0, 0.08, 0.02);
+    rifleGroup.add(scope);
+
+    const muzzleTip = new THREE.Object3D();
+    muzzleTip.name = 'muzzleTip';
+    muzzleTip.position.set(0, 0.02, 0.58);
+    rifleGroup.add(muzzleTip);
+
+    weaponSocket.add(rifleGroup);
     rightArmGroup.add(weaponSocket);
 
     group.add(rightArmGroup);
@@ -373,6 +406,7 @@ export class ProceduralHumanoidFactory {
     // --- 4. UPPER & LOWER LEGS WITH HIP/KNEE JOINTS & FEET ---
     // Left Leg
     const leftLegGroup = new THREE.Group();
+    leftLegGroup.name = 'leftLegGroup';
     leftLegGroup.position.set(-0.16, 0.70, 0);
 
     const hipL = new THREE.Mesh(GEOMETRY_CACHE.jointSphere, jointMat);
@@ -405,6 +439,7 @@ export class ProceduralHumanoidFactory {
 
     // Right Leg
     const rightLegGroup = new THREE.Group();
+    rightLegGroup.name = 'rightLegGroup';
     rightLegGroup.position.set(0.16, 0.70, 0);
 
     const hipR = new THREE.Mesh(GEOMETRY_CACHE.jointSphere, jointMat);
@@ -629,8 +664,8 @@ export const HEALTHBAR_BILLBOARD_SHADER = {
       vec3 cameraUp    = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
 
       vec3 worldPosition = instancePosition
-        + (cameraRight * (position.x - 0.5) * instanceSize.x)
-        + (cameraUp * (position.y - 0.5) * instanceSize.y);
+        + (cameraRight * position.x * instanceSize.x)
+        + (cameraUp * position.y * instanceSize.y);
 
       vec4 mvPosition = viewMatrix * vec4(worldPosition, 1.0);
       gl_Position = projectionMatrix * mvPosition;
@@ -841,7 +876,7 @@ export class EnemyFactory {
       ? (Math.random() < config.weapon.rifleChance ? 'RIFLE' : 'PISTOL')
       : (type === 'GOLIATH' ? 'BATTLEAXE' : 'KAMIKAZE');
 
-    const characterRig = new CharacterRig('PROCEDURAL', config.color);
+    const characterRig = new CharacterRig('PROCEDURAL', config.color, group);
     const animator = new ProceduralAnimator(characterRig);
     HitboxManager.attachLimbHitboxes(characterRig);
 

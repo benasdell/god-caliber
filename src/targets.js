@@ -290,25 +290,47 @@ export class TargetManager {
             }
           }
         }
-        // 3. HUMANOID: Ranged Pistol / Rifle Burst Firing
+        // 3. HUMANOID: Ranged Assault Rifle Burst Firing
         else if (b.type === 'HUMANOID') {
           if (distToPlayer <= 30.0 && b.attackCooldown <= 0) {
             const bulletMgr = window.gameInstance ? window.gameInstance.bulletManager : null;
             if (bulletMgr) {
-              const getLiveOrigin = () => b.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+              const getLiveOrigin = () => {
+                const muzzleTip = b.group ? b.group.getObjectByName('muzzleTip') : null;
+                if (muzzleTip) {
+                  const worldPos = new THREE.Vector3();
+                  muzzleTip.getWorldPosition(worldPos);
+                  return worldPos;
+                }
+                return b.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+              };
               const getLiveTarget = () => window.gameInstance?.player?.camera?.position || playerPosition;
+
+              const muzzleOrigin = getLiveOrigin();
+              if (bulletMgr.triggerSpark) {
+                bulletMgr.triggerSpark(muzzleOrigin, 0xffb703);
+              }
+
               if (b.weaponType === 'PISTOL') {
                 b.attackCooldown = 1.2;
-                bulletMgr.spawnEnemyProjectile(getLiveOrigin(), getLiveTarget(), 12, 50);
+                bulletMgr.spawnEnemyProjectile(muzzleOrigin, getLiveTarget(), 12, 50);
                 sound.playImpact();
               } else {
                 b.attackCooldown = 2.0;
-                bulletMgr.spawnEnemyProjectile(getLiveOrigin(), getLiveTarget(), 10, 60);
+                bulletMgr.spawnEnemyProjectile(muzzleOrigin, getLiveTarget(), 10, 60);
                 setTimeout(() => {
-                  if (!b.isDestroyed) bulletMgr.spawnEnemyProjectile(getLiveOrigin(), getLiveTarget(), 10, 60);
+                  if (!b.isDestroyed) {
+                    const nextOrigin = getLiveOrigin();
+                    if (bulletMgr.triggerSpark) bulletMgr.triggerSpark(nextOrigin, 0xffb703);
+                    bulletMgr.spawnEnemyProjectile(nextOrigin, getLiveTarget(), 10, 60);
+                  }
                 }, 100);
                 setTimeout(() => {
-                  if (!b.isDestroyed) bulletMgr.spawnEnemyProjectile(getLiveOrigin(), getLiveTarget(), 10, 60);
+                  if (!b.isDestroyed) {
+                    const nextOrigin = getLiveOrigin();
+                    if (bulletMgr.triggerSpark) bulletMgr.triggerSpark(nextOrigin, 0xffb703);
+                    bulletMgr.spawnEnemyProjectile(nextOrigin, getLiveTarget(), 10, 60);
+                  }
                 }, 200);
                 sound.playImpact();
               }

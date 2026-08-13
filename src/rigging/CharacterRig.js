@@ -5,16 +5,44 @@ import * as THREE from 'three';
  * Supports both procedural primitive joint groups and rigged GLTF models.
  */
 export class CharacterRig {
-  constructor(mode = 'PROCEDURAL', color = 0x00f0ff) {
+  constructor(mode = 'PROCEDURAL', color = 0x00f0ff, existingGroup = null) {
     this.mode = mode; // 'PROCEDURAL' | 'GLTF'
-    this.root = new THREE.Group();
+    this.root = existingGroup || new THREE.Group();
     this.bones = new Map();
     this.meshes = new Map();
     this.hitboxes = new Map();
 
-    if (mode === 'PROCEDURAL') {
+    if (existingGroup) {
+      this.bindExistingGroup(existingGroup);
+    } else if (mode === 'PROCEDURAL') {
       this.buildProceduralSkeleton(color);
     }
+  }
+
+  bindExistingGroup(group) {
+    this.root = group;
+
+    // Traverse group and map bone joint nodes
+    group.traverse((node) => {
+      if (node.name) {
+        this.bones.set(node.name, node);
+      }
+    });
+
+    // Map standard bone names from child groups
+    const head = group.getObjectByName('headGroup') || this.bones.get('headGroup');
+    const chest = group.getObjectByName('torsoGroup') || this.bones.get('torsoGroup');
+    const leftArm = group.getObjectByName('leftArmGroup') || this.bones.get('leftArmGroup');
+    const rightArm = group.getObjectByName('rightArmGroup') || this.bones.get('rightArmGroup');
+    const leftLeg = group.getObjectByName('leftLegGroup') || this.bones.get('leftLegGroup');
+    const rightLeg = group.getObjectByName('rightLegGroup') || this.bones.get('rightLegGroup');
+
+    if (head) this.bones.set('Head', head);
+    if (chest) this.bones.set('Chest', chest);
+    if (leftArm) this.bones.set('LeftArm', leftArm);
+    if (rightArm) this.bones.set('RightArm', rightArm);
+    if (leftLeg) this.bones.set('LeftLeg', leftLeg);
+    if (rightLeg) this.bones.set('RightLeg', rightLeg);
   }
 
   buildProceduralSkeleton(color) {

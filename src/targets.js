@@ -28,7 +28,7 @@ export class TargetManager {
     this.scene.add(this.healthBarManager.mesh);
 
     this.currentWave = 0;
-    this.waveTimer = 30.0;
+    this.waveTimer = 60.0;
     this.inIntermission = true;
 
     this.coverPoints = [

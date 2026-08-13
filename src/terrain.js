@@ -52,14 +52,101 @@ export function createTriangularRampGeometry(width, height, length) {
   return geom;
 }
 
-// Modular 1000x1000m Procedural Map Configuration
+// Modular Dense Cyberpunk Map Configuration (1000x1000m Lived-In Sector)
 export const TESTING_ARENA_CONFIG = {
   id: "testing_arena",
-  name: "Thunderbird 1000m Sector Arena",
+  name: "Thunderbird Lived-In Sector Arena",
 
-  // Ground & 18m High Perimeter Walls (1000x1000m)
   ground: { width: 1000, length: 1000 },
   perimeterWalls: { height: 18, thickness: 3 },
+
+  // Single-level outposts, armories, and labs
+  singleLevelBuildings: [
+    { x: -25, y: 0, z: -25, width: 14, height: 4.5, length: 14 },
+    { x: 25, y: 0, z: -25, width: 14, height: 4.5, length: 14 },
+    { x: -25, y: 0, z: 25, width: 14, height: 4.5, length: 14 },
+    { x: 25, y: 0, z: 25, width: 14, height: 4.5, length: 14 },
+    { x: -60, y: 0, z: -60, width: 18, height: 5.0, length: 18 },
+    { x: 60, y: 0, z: -60, width: 18, height: 5.0, length: 18 },
+    { x: -60, y: 0, z: 60, width: 18, height: 5.0, length: 18 },
+    { x: 60, y: 0, z: 60, width: 18, height: 5.0, length: 18 },
+    { x: 0, y: 0, z: -80, width: 22, height: 5.5, length: 16 },
+    { x: 0, y: 0, z: 80, width: 22, height: 5.5, length: 16 },
+    { x: -80, y: 0, z: 0, width: 16, height: 5.5, length: 22 },
+    { x: 80, y: 0, z: 0, width: 16, height: 5.5, length: 22 },
+  ],
+
+  // Two-level sniper towers with internal staircases
+  twoLevelBuildings: [
+    { x: 0, y: 0, z: 0, width: 20, height: 9.0, length: 20 },
+    { x: -45, y: 0, z: -45, width: 16, height: 8.5, length: 16 },
+    { x: 45, y: 0, z: -45, width: 16, height: 8.5, length: 16 },
+    { x: -45, y: 0, z: 45, width: 16, height: 8.5, length: 16 },
+    { x: 45, y: 0, z: 45, width: 16, height: 8.5, length: 16 },
+    { x: 0, y: 0, z: -120, width: 18, height: 9.0, length: 18 },
+  ],
+
+  // Fortified concrete pillboxes / bunkers with firing slits
+  pillboxes: [
+    { x: -15, y: 0, z: 0, width: 8, height: 3.2, length: 8 },
+    { x: 15, y: 0, z: 0, width: 8, height: 3.2, length: 8 },
+    { x: 0, y: 0, z: -40, width: 10, height: 3.2, length: 10 },
+    { x: 0, y: 0, z: 40, width: 10, height: 3.2, length: 10 },
+    { x: -90, y: 0, z: -90, width: 10, height: 3.5, length: 10 },
+    { x: 90, y: 0, z: -90, width: 10, height: 3.5, length: 10 },
+    { x: -90, y: 0, z: 90, width: 10, height: 3.5, length: 10 },
+    { x: 90, y: 0, z: 90, width: 10, height: 3.5, length: 10 },
+  ],
+
+  // Elevated tactical platforms & loading docks
+  platforms: [
+    { x: -35, y: 2.0, z: -10, width: 12, height: 4.0, length: 12 },
+    { x: 35, y: 2.0, z: -10, width: 12, height: 4.0, length: 12 },
+    { x: -35, y: 2.0, z: 10, width: 12, height: 4.0, length: 12 },
+    { x: 35, y: 2.0, z: 10, width: 12, height: 4.0, length: 12 },
+    { x: 0, y: 4.5, z: -60, width: 16, height: 5.0, length: 16 },
+    { x: 0, y: 4.5, z: 60, width: 16, height: 5.0, length: 16 },
+  ],
+
+  // Tactical barriers, concrete cover walls, and shipping containers
+  coverWalls: [
+    { x: -8, y: 1.1, z: -12, width: 6, height: 2.2, length: 0.8, fullCover: true },
+    { x: 8, y: 1.1, z: -12, width: 6, height: 2.2, length: 0.8, fullCover: true },
+    { x: -8, y: 1.1, z: 12, width: 6, height: 2.2, length: 0.8, fullCover: true },
+    { x: 8, y: 1.1, z: 12, width: 6, height: 2.2, length: 0.8, fullCover: true },
+    { x: -30, y: 1.4, z: -35, width: 8, height: 2.8, length: 3.5, fullCover: false },
+    { x: 30, y: 1.4, z: -35, width: 8, height: 2.8, length: 3.5, fullCover: false },
+    { x: -30, y: 1.4, z: 35, width: 8, height: 2.8, length: 3.5, fullCover: false },
+    { x: 30, y: 1.4, z: 35, width: 8, height: 2.8, length: 3.5, fullCover: false },
+    { x: -70, y: 1.5, z: -30, width: 10, height: 3.0, length: 4.0, fullCover: true },
+    { x: 70, y: 1.5, z: -30, width: 10, height: 3.0, length: 4.0, fullCover: true },
+    { x: -70, y: 1.5, z: 30, width: 10, height: 3.0, length: 4.0, fullCover: true },
+    { x: 70, y: 1.5, z: 30, width: 10, height: 3.0, length: 4.0, fullCover: true },
+  ],
+
+  // Triangular access ramps
+  ramps: [
+    { x: -25, y: 0, z: -18, width: 4, height: 4.5, length: 8, rotationY: 0 },
+    { x: 25, y: 0, z: -18, width: 4, height: 4.5, length: 8, rotationY: 0 },
+    { x: -25, y: 0, z: 18, width: 4, height: 4.5, length: 8, rotationY: Math.PI },
+    { x: 25, y: 0, z: 18, width: 4, height: 4.5, length: 8, rotationY: Math.PI },
+  ],
+
+  // Vertical climbing ladders
+  ladders: [
+    { x: -45, z: -37, yStart: 0, yEnd: 8.5, rotationY: 0 },
+    { x: 45, z: -37, yStart: 0, yEnd: 8.5, rotationY: 0 },
+    { x: -45, z: 37, yStart: 0, yEnd: 8.5, rotationY: Math.PI },
+    { x: 45, z: 37, yStart: 0, yEnd: 8.5, rotationY: Math.PI },
+  ],
+
+  // Tactical Ziplines connecting high buildings and towers
+  ziplines: [
+    { start: [0, 9.0, 0], end: [-45, 8.5, -45] },
+    { start: [0, 9.0, 0], end: [45, 8.5, -45] },
+    { start: [0, 9.0, 0], end: [-45, 8.5, 45] },
+    { start: [0, 9.0, 0], end: [45, 8.5, 45] },
+  ]
 };
 
 export const DEFAULT_MAP_CONFIG = TESTING_ARENA_CONFIG;

@@ -172,13 +172,23 @@ export class BulletManager {
         if (bot.isDestroyed) continue;
         const botPos = bot.position || bot.group?.position;
         if (bot.characterRig && botPos) {
-          const limbHit = HitboxManager.raycastEntity(_scratchRay, botPos, bot.characterRig);
+          const isGoliath = bot.type === 'GOLIATH';
+          const limbHit = HitboxManager.raycastEntity(_scratchRay, botPos, bot.characterRig, isGoliath);
           if (limbHit && limbHit.distance < hitDist) {
             hitDist = limbHit.distance;
             hitPoint.copy(limbHit.point);
             hitBot = bot;
             hitPeer = null;
             hitLimbResult = limbHit;
+          } else if (!limbHit && bot.collider && _scratchRay.intersectSphere(bot.collider, _scratchCheckPoint)) {
+            const dist = startPos.distanceTo(_scratchCheckPoint);
+            if (dist < hitDist) {
+              hitDist = dist;
+              hitPoint.copy(_scratchCheckPoint);
+              hitBot = bot;
+              hitPeer = null;
+              hitLimbResult = null;
+            }
           }
         } else if (bot.collider && _scratchRay.intersectSphere(bot.collider, _scratchCheckPoint)) {
           const dist = startPos.distanceTo(_scratchCheckPoint);

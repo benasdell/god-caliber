@@ -529,11 +529,20 @@ export class ProceduralHumanoidFactory {
     const thrusterMat = MATERIAL_CACHE.droneThrusterGlow;
     const armorMat = MATERIAL_CACHE.armorPlate;
 
-    // Central Sphere Core
+    // Central Sphere Core (Named droneCore for CharacterRig bone binding)
+    const droneCore = new THREE.Group();
+    droneCore.name = 'droneCore';
+    droneCore.position.set(0, 0.45, 0);
+
     const core = new THREE.Mesh(GEOMETRY_CACHE.droneCore, coreMat);
-    core.position.set(0, 0.45, 0);
     core.castShadow = true;
-    group.add(core);
+    droneCore.add(core);
+
+    // Also register headGroup and torsoGroup aliases for Drone
+    const headAlias = new THREE.Object3D(); headAlias.name = 'headGroup'; droneCore.add(headAlias);
+    const torsoAlias = new THREE.Object3D(); torsoAlias.name = 'torsoGroup'; droneCore.add(torsoAlias);
+
+    group.add(droneCore);
 
     // Glowing Visor Ring
     const visorRing = new THREE.Mesh(GEOMETRY_CACHE.droneVisorRing, thrusterMat);

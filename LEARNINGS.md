@@ -123,3 +123,9 @@
   In GLSL vertex shaders for `PlaneGeometry` billboard quads, do NOT subtract `0.5` from `position.x`, as `PlaneGeometry` vertices are already centered at origin `0`. Subtracting `0.5` biases health bars to the left.
 - **AI Weapon Socket & Muzzle Tip Extraction (Hotfix 0.3.10b)**:
   Humanoid enemies must carry a 3D weapon model attached to `weaponSocket` with a named `muzzleTip` child node. Extracting `muzzleTip.getWorldPosition(worldPos)` provides accurate firing origins and muzzle flash FX.
+- **Broadphase Hitbox Sphere Bounds & Scale Safety (Hotfix 0.3.10c)**:
+  Broadphase bounding spheres (`_broadSphere`) must be generously sized (`R = 2.5m` for humanoids/drones, `R = 3.5m` for 1.5x scaled Goliaths). Tight spheres crop out headshots and animated limbs.
+- **Drone Mechanical Core Bone Registration (Hotfix 0.3.10c)**:
+  Non-humanoid entities like flying drones must register their central mesh node (`droneCore`) as a bound bone node in `CharacterRig` and `HitboxManager` (`DRONE_CORE` hitbox).
+- **Raycast Collider Fallback Guarantee (Hotfix 0.3.10c)**:
+  If a narrowphase limb raycast returns `null` (e.g. edge shots), fallback to checking `bot.collider` (bounding sphere). This guarantees no enemy is ever immune to player bullets.

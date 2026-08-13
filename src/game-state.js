@@ -31,7 +31,7 @@ export class GameStateManager {
 
     // Phase durations in seconds
     this.PHASE_DURATIONS = {
-      LOOT_PHASE: 30,      // 30 seconds looting phase
+      LOOT_PHASE: 60,      // 60 seconds (1 minute) looting phase
       COMBAT_STAGE_1: 45,  // Circle stage 1→2
       COMBAT_STAGE_2: 40,  // Circle stage 2→3
       COMBAT_STAGE_3: 30,  // Circle stage 3→4 (final)

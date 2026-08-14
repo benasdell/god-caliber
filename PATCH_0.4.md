@@ -1,38 +1,41 @@
 # 🚀 God-Caliber — Patch 0.4 "Hydra" Deployment & Execution Plan
+**Focus:** Asset Pipeline Modernization, Modular 3D Architecture, Testing Arena Rebuild, & Networked Visual Action Replication
 
 **Version Target:** `v0.4.0-alpha`  
-**Patch Codename:** `Hydra`  
+**Patch Codename:** `Hydra` (Asset Foundation Refactor)  
 **Status:** Planning & Execution  
 **Orchestration Lead:** `project-manager`  
-**Primary Focus:** Comprehensive Inventory Mechanics Overhaul, Tarkov-Style Container Architecture, Live 3D Character Viewport, Drop Pool Rebalancing, and Crafting Architecture Preparation.
+**Primary Objectives:** Complete 3D Asset Pipeline Overhaul, 15-Limb Player Rigging & Animation Suite, Modular "Testing Arena" Rebuild, Extensible Skin/Item/Map Foundation, and Server-Authoritative Action/Visual Replication.
 
 ---
 
 ## 📑 Executive Summary
 
-Patch 0.4 **"Hydra"** executes a fundamental overhaul of God-Caliber's character display, inventory management, loot distribution, and crafting pipelines. 
+Patch 0.4 strategically establishes God-Caliber's core **3D Asset Pipeline & Multiplayer Visual Replication Architecture**. Recognizing that upcoming systems (such as UI character viewports, dynamic container inspect panes, advanced movement overhauls, and procedural terrain) require a standardized 3D foundation, this patch delivers:
 
-This update replaces the legacy procedurally generated player model with an integrated **15-limb rigged 3D character mesh** built in Blender, introduces a live 3D character viewport inside the Inventory UI (similar to *World of Warcraft* and *Path of Exile*), and implements dynamic, container-driven inventory space (Combat Vests, Backpacks, and Pockets). 
-
-Additionally, item grid footprints are standardized (reducing pistols, currency, and recipes to 1x1 slots), drop tables are retuned to establish Crafting Dust as the primary core drop, Legendary weapons are restricted strictly to crafting recipes, and the legacy bench upgrading system is excised to lay the groundwork for the upcoming crafting architecture.
+1. **Standardized 3D Player Character:** Replaces the archaic procedural placeholder with a high-fidelity 3D player model built in Blender, integrated with the existing 15-limb skeletal rig and full action animation suite.
+2. **Interactive 3D Item Framework:** Replaces primitive item meshes with articulated 3D models supporting reload stages (magazine separation, slide racking), casing ejection, and world pickup states.
+3. **Ground-Up Rebuild of "Testing Arena":** Replaces placeholder test geometry with modular PBR assets (buildings, ladders, ziplines, traversal props, and clean collision meshes).
+4. **Extensible & Performant Asset Registry:** Implements standardized bone socket schemas, automated Blender MCP export pipelines, LOD hierarchies, and material instancing caches for zero-friction skin/item/map additions.
+5. **Networked Visual Action Replication:** Synchronizes held items, ground loot visibility, muzzle flashes, casing ejections, and traversal states across all connected clients in real time with high tick-rate efficiency.
 
 ---
 
 ## 🛠️ Subagent Allocation & Ownership Matrix
 
-| Subagent | Role & Primary Responsibility | Patch 0.4 "Hydra" Deliverables |
+| Subagent | Role & Primary Responsibility | Patch 0.4 Deliverables |
 | :--- | :--- | :--- |
-| `project-manager` | Workflow orchestration, task breakdown, sprint tracking | Sprint tracking, dependency mapping, change order validation, release triggers |
-| `high-level-designer` | Game balance, mechanics logic, economy specs | Item size re-specs (1x1 renames), drop rate rebalance matrices, GDD Section 5 updates |
-| `industry-researcher` | Market benchmarking, player retention & feedback loops | Modular container inventory UX benchmarks (EFT/PoE/WoW character inspect systems) |
-| `ux-designer` | Interaction ergonomics, user flows, HUD wireframes | Inventory UI layout wireframes (3D inspect pane, nested container slots, slot modifier feedback) |
-| `ui-engineer` | Front-end implementation, component binding | 3D render-target viewport binding, MVVM nested container widgets, thumbnail render loops |
-| `3d-artist` | Asset generation, PBR setup, Blender MCP execution | 15-limb player mesh in Blender, animation weight validation, 128x128 item thumbnail render pipeline |
-| `artist-vfx-designer` | Procedural geometries, shader FX, neon cyberpunk aesthetics | UI character inspect lighting/post-fx, rarity glow shaders, slot scaling transition FX |
-| `network-engineer` | Netcode replication, prediction, RPC optimization | Nested container state replication (`PlayerInventory` -> `Containers` -> `Slots`), dynamic slot bound RPCs |
-| `security-engineer` | Anti-cheat audit, server authority, protocol security | Container boundary RPC verification, item duplication anti-tamper, stack-size memory encryption |
-| `version-controller` | Git hygiene, SemVer tagging, merge reviews | Feature PR code reviews, Conventional Commit enforcement, `v0.4.0-alpha` tag creation |
-| `documenter` | Documentation maintenance, API & release notes | API spec updates (`InventoryContainer`), GDD maintenance, public/internal `CHANGELOG.md` entry |
+| `project-manager` | Workflow orchestration, milestone sequencing, dependency gating | Sprint dependency mapping, asset review gates, cross-agent handoff tracking, release milestone approval |
+| `high-level-designer` | Game balance, action timing specs, socket naming schemas | Weapon action state trees (reload timings, casing ejection timestamps), socket convention specs (`socket_hand_r`, `socket_holster`), interaction rules |
+| `industry-researcher` | Competitive benchmarking, tech stack & netcode research | Benchmark action replication latency, bandwidth budgets for visual event RPCs, and modular kit standards in modern shooters |
+| `ux-designer` | Interaction ergonomics, world-space cues, visual feedback | World-space pickup interaction cues, ladder/zipline mounting prompts, weapon animation field-of-view (FOV) framing |
+| `ui-engineer` | In-game HUD bindings, world-to-screen prompts, render profiling | World-space interaction dockets for ground items/traversal points, HUD-to-held-item state synchronization |
+| `3d-artist` | 3D modeling, rigging, animation, Blender MCP automation | 15-limb player mesh & animations (locomotion, reload, pickup, climb); articulated weapon/item meshes; modular Testing Arena kit |
+| `artist-vfx-designer` | Shaders, particle FX, lighting rigs, visual optimization | Muzzle flash particle systems, casing ejection physical particles, PBR master materials, Testing Arena environment lighting |
+| `network-engineer` | Multiplayer replication, netcode prediction, RPC optimization | Replicated item attachment sockets, ground loot sync, visual event RPCs (muzzle flash, shell eject), client prediction for ladders/ziplines |
+| `security-engineer` | Server authority, anti-tamper, interaction boundary validation | Server validation for ladder/zipline speed bounds, loot pickup distance sanity checks, animation rate-limit exploit defenses |
+| `version-controller` | Git hygiene, Git LFS asset management, SemVer tagging | Git LFS configuration for `.blend`/`.gltf`/PBR textures, PR merge audits, `v0.4.0-alpha` release tagging |
+| `documenter` | Technical specifications, asset standards guides, changelogs | 3D Asset Creation Standards Guide, Visual Action Replication API documentation, public & developer `CHANGELOG.md` |
 
 ---
 
@@ -40,106 +43,114 @@ Additionally, item grid footprints are standardized (reducing pistols, currency,
 
 ```mermaid
 graph TD
-    HLD[high-level-designer] -->|Item Grid Dimensions & Drop Tables| UXD[ux-designer]
-    HLD -->|Rigging & Scale Specs| TDA[3d-artist]
-    TDA -->|15-Limb Player Model & Item Meshes| UIE[ui-engineer]
-    TDA -->|Model Render Hooks| VFX[artist-vfx-designer]
-    UXD -->|UI Wireframes & Container Layouts| UIE
-    VFX -->|Inspect Viewport Shaders| UIE
-    HLD -->|Container Stat Formulas| NE[network-engineer]
-    NE -->|Slot Expansion & Pickup RPCs| SE[security-engineer]
-    UIE -->|Front-End Bindings| PM[project-manager]
-    SE -->|Anti-Dupe Validation| PM
+    HLD[high-level-designer] -->|Socket Conventions & Action Timings| TDA[3d-artist]
+    HLD -->|Interaction Distance Specs| UXD[ux-designer]
+    TDA -->|15-Limb Player & Articulated Item Meshes| VFX[artist-vfx-designer]
+    TDA -->|Modular Testing Arena Environment Kit| VFX
+    UXD -->|World-Space Interaction Prompts| UIE[ui-engineer]
+    TDA -->|Exported .gltf & Skeleton Bounds| NE[network-engineer]
+    VFX -->|VFX Systems: Flash, Casings, Shaders| NE
+    NE -->|Visual Action RPCs & Traversal Sync| SE[security-engineer]
+    UIE -->|UI World Hooks| PM[project-manager]
+    SE -->|Server Authority Approvals| PM
     PM -->|Release Authorization| VC[version-controller]
-    VC -->|Git Logs & Commit History| DOC[documenter]
+    VC -->|Git Logs & Asset Commit History| DOC[documenter]
 ```
 
 ---
 
-## 📋 Task Breakdown by Phase
+## 📋 Granular Task Breakdown by Phase
 
-### Phase 1: Systems Design, Balancing, & UI Ergonomics
+### Phase 1: Specifications, Socket Conventions, & Design Architecture
 
 * **`industry-researcher`**
-    * [ ] Benchmark modular slot-container UX (*Escape from Tarkov*) and live character preview panes (*World of Warcraft*, *Path of Exile*) for optimal viewport framing, aspect ratio responsiveness, and UI clarity.
-    * [ ] Audit player friction metrics related to grid management, hot-swapping, and container slot accessibility.
+  * [ ] Benchmark competitive tick-rate budgets and bandwidth-efficient visual event replication (e.g., multicast RPCs vs. client-side cosmetic triggers).
+  * [ ] Audit modular environment kit practices (grid snapping, draw call batching, LOD transitions) to optimize baseline performance.
 
 * **`high-level-designer`**
-    * [ ] **Item Footprint Rework:** Re-spec item grid footprints across all tables—reduce Pistols, Currency items, and Recipes/Blueprints to standard 1x1 slots.
-    * [ ] **Loot Pool Rebalance:**
-        * Adjust world drop table weights to establish Crafting Dust as the primary core drop.
-        * Significantly reduce direct raw weapon drop frequencies across all zones.
-        * *Exclusion:* Remove all Legendary weapons from the world drop tables (crafting-exclusive).
-    * [ ] **Crafting System Preparation:** Draft specification removing the legacy Upgrading System from the Crafting Bench to pave the way for Patch 0.5 crafting mechanics.
-    * [ ] **Dynamic Inventory Logic:** Define mathematical formulas for slot capacity calculations:
-        $$\text{Total Capacity} = \text{Base Pockets} + \sum(\text{Equipped Container Slots}) + \text{Item Modifiers}$$
+  * [ ] **Socket Standardization:** Define unified skeletal socket naming schemas (`socket_hand_r`, `socket_hand_l`, `socket_back_primary`, `socket_holster_sidearm`, `socket_muzzle`, `socket_ejection_port`).
+  * [ ] **Weapon Action State Trees:** Map exact animation phases and timestamps for all current weapons (e.g., Magazine Eject at $t = 0.4\text{s}$, Mag Insert at $t = 1.2\text{s}$, Bolt Rack at $t = 1.6\text{s}$, Casing Ejection at $t = 0.02\text{s}$ post-fire).
+  * [ ] **Traversal Specs:** Standardize climbing speeds, mount/dismount collision margins for ladders, and acceleration curves for ziplines.
 
 * **`ux-designer`**
-    * [ ] Wireframe the unified Inventory Inspection Screen:
-        * *Left/Center:* Live 3D Character Preview Pane with rotation affordances.
-        * *Right:* Nested Container Slot Layouts (Backpack, Combat Vest, Pockets).
-        * *Center/Bottom:* Dedicated Equipment slots featuring dynamic thumbnail displays.
-    * [ ] Design visual affordances and UI transition states for dynamic grid expansion when gear with slot modifiers (e.g., "+2 Inventory Slots") is equipped/unequipped.
+  * [ ] Design world-space visual affordances and screen-edge indicators for interactable ground loot, ladders, and ziplines.
+  * [ ] Establish First-Person / Third-Person camera framing guidelines to ensure reload and casing animations remain visually clear without obstructing gameplay FOV.
 
 ---
 
-### Phase 2: Asset Pipeline, UI Integration, & Network Replication
+### Phase 2: 3D Asset Creation, Level Rebuild, & Netcode Replication
 
 * **`3d-artist` (via Blender MCP)**
-    * [ ] **3D Player Model Overhaul:**
-        * Model and texture a high-fidelity 3D player mesh inside Blender to replace the archaic procedural player model.
-        * Rig the character mesh directly onto God-Caliber's existing 15-limb skeleton rig.
-        * Validate weight painting and mesh deformation across standard locomotion, idle, and inspect animation cycles.
-    * [ ] **Automated Thumbnail Pipeline:**
-        * Configure an automated Blender MCP render pass to output clean 128x128 PNG thumbnails for all equipped gear, weapons, and inventory items.
+  * [ ] **15-Limb Player Model & Animation Suite:**
+    * Model and texture a clean, modular 3D base player mesh in Blender, fully mapped to the 15-limb armature rig.
+    * Author core animation tracks: Idle, 8-way Locomotion (Walk/Run/Crouch), Item Pickup, Reload (Rifle, Pistol, Shotgun), Ladder Climb, and Zipline Mount/Travel.
+  * [ ] **Articulated Item & Weapon Models:**
+    * Rebuild all existing weapon and item meshes with decoupled moving sub-parts (magazines, slides, bolts, triggers).
+    * Model dedicated 3D shell casing assets and matching ejection ports for all ballistic calibers.
+  * [ ] **Testing Arena Level Rebuild:**
+    * Create a modular cyberpunk architectural kit (snappable walls, floors, catwalks, stairwells, cover blocks) with standardized pivots at $(0, 0, 0)$.
+    * Build physical ladder and zipline 3D prefabs with precise collision meshes.
+  * [ ] **Extensible Export Pipeline:**
+    * Set up batch `.gltf` export scripts via Blender MCP with automated LOD generation (LOD0: 100%, LOD1: 50%, LOD2: 20%) and normalized scale ($1\text{ unit} = 1\text{ meter}$).
 
 * **`artist-vfx-designer`**
-    * [ ] Build lighting rigs, rim lighting shaders, and subtle cyberpunk background bloom for the Inventory 3D Character Viewport.
-    * [ ] Implement smooth visual grid-scaling transition animations when equipped items dynamically alter storage capacity.
+  * [ ] **Particle Systems:** Build high-performance particle emitters for muzzle flashes, directional bullet impacts (concrete, metal, flesh), and physics-simulated bouncing casing ejections.
+  * [ ] **PBR Master Materials & Lighting:** Create shared instanced PBR shaders (Albedo, Normal, Roughness, Metallic, Emissive) with caching to prevent shader permutation bloat across the Testing Arena.
+  * [ ] Reconstruct lighting and post-processing in Testing Arena to support crisp shadows, neon accents, and optimized performance.
 
 * **`ui-engineer`**
-    * [ ] **3D Viewport Binding:** Integrate a real-time render-target frame for the live 3D player model into the main UI character pane.
-    * [ ] **Tarkov-Style Container System:**
-        * Construct modular UI components for dedicated container slots: Combat Vest (Default 2x2), Backpack (Default 2x3), and 4 Single-Cell Pockets (1x1 each).
-        * Bind dynamic 2D/3D item thumbnails to equipped gear slots and inventory cells.
-    * [ ] **Dynamic Grid Scaling:** Bind inventory grid layout components to character state modifiers so added slot capacity seamlessly expands the UI grid in real-time.
+  * [ ] Implement world-space interaction prompts that dynamically track world items, ladders, and ziplines with responsive screen-space projection.
+  * [ ] Bind HUD weapon status displays directly to weapon animation states (sync ammo counts to reload completion events).
 
 * **`network-engineer`**
-    * [ ] Refactor inventory replication netcode to support nested container hierarchies (`PlayerInventory` -> `EquippedContainers` -> `ContainerSlots`).
-    * [ ] Implement server-authoritative validation to recalculate valid inventory bounds whenever gear modifying slot count is updated.
+  * [ ] **Multiplayer Visual Action Sync:**
+    * Implement server-replicated item attachment logic: actively held weapons replicate to third-person hands, while holstered weapons attach to back/sidearm sockets.
+    * Replicate animation triggers (Reload, Pickup, Climb, Zipline) across all clients with local prediction and state reconciliation.
+  * [ ] **Cosmetic Event Replication:**
+    * Transmit lightweight, compressed visual RPCs for remote weapon firing events (triggering remote muzzle flashes, audio cues, and shell casing spawns).
+  * [ ] **Ground Loot Replication:**
+    * Build an authoritative ground item spawner with delta replication for pickup/drop states, ensuring all players see identical items resting on terrain.
 
 ---
 
-### Phase 3: Security Hardening, Versioning, & Release Management
+### Phase 3: Security Validation, Git Hygiene, & Release Packaging
 
 * **`security-engineer`**
-    * [ ] Audit item drop, swap, and equip RPC endpoints to prevent out-of-bounds slot storage or force-storing items in unequipped containers.
-    * [ ] Enforce strict server-side validation against race condition exploits and item duplication during rapid container hot-swapping or disconnects.
+  * [ ] **Interaction Distance & Traversal Auditing:**
+    * Enforce server-side raycast distance checks before executing item pickup RPCs.
+    * Validate ladder climbing and zipline traversal on the server to prevent speedhacks, teleportation, or no-clip movement exploits.
+  * [ ] **Animation & Fire-Rate Anti-Tamper:**
+    * Enforce server authority over minimum reload durations and fire rate intervals, preventing client-side animation speed tampering.
 
 * **`version-controller`**
-    * [ ] Review incoming feature pull requests (`feature/15-limb-player-model`, `feature/container-inventory`, `feature/loot-drop-rebalance`).
-    * [ ] Enforce Conventional Commit format across all art, design, and engineering commits (e.g., `feat(inventory): implement Tarkov-style container slots`).
-    * [ ] Tag release build as `v0.4.0-alpha` upon green CI pass and dispatch git commit logs to `documenter`.
+  * [ ] **Git LFS Architecture:** Configure `.gitattributes` to handle all binary 3D meshes (`.blend`, `.fbx`, `.gltf`, `.glb`) and texture maps (`.png`, `.tga`, `.exr`) through Git LFS.
+  * [ ] Audit all incoming PRs (`feature/15-limb-player-mesh`, `feature/testing-arena-rebuild`, `feature/networked-action-sync`) to enforce Conventional Commits.
+  * [ ] Tag the official repository release as `v0.4.0-alpha` and deliver commit digests to `documenter`.
 
 * **`documenter`**
-    * [ ] Update `/docs/gdd/INVENTORY_AND_LOOT.md` with new item footprint tables, container default sizes, and drop rate matrices.
-    * [ ] Publish developer-facing API specs for `InventoryContainer` and compile the public `CHANGELOG.md` entry detailing Patch 0.4 "Hydra" changes.
+  * [ ] Create `/docs/art/ASSET_CREATION_STANDARDS.md` detailing bone socket requirements, vertex budgets, PBR texture packing conventions, and export presets.
+  * [ ] Document network RPC payloads in `/docs/api/ACTION_REPLICATION.md`.
+  * [ ] Publish internal and player-facing `CHANGELOG.md` highlighting the Testing Arena revamp, new animated player models, articulated weapon actions, and visual synchronization.
 
 ---
 
 ## 🔄 Inter-Agent Communication Protocols
 
-* **Character Rigging Handoff:** `3d-artist` must verify mesh binding compatibility with the existing 15-limb skeleton rig before dispatching `.gltf`/`.fbx` files to `ui-engineer`.
-* **Container Schema Handoff:** `high-level-designer` must supply structured JSON/YAML schemas for container slot arrays and item footprint dimensions before `network-engineer` updates RPC payload signatures.
-* **Anti-Cheat Gatekeeping:** `version-controller` shall block all merges to main until `security-engineer` provides explicit sign-off on container duplication and out-of-bounds memory checks.
+* **3D Art to Netcode Handoff:** `3d-artist` must supply an exact list of bone socket names, pivot locations, and animation event trigger frame numbers before `network-engineer` hooks visual replication RPCs.
+* **Level Geometry to VFX Handoff:** `3d-artist` modular meshes must be checked for unified scale ($1\text{m} = 1\text{ unit}$) and correct surface normals before `artist-vfx-designer` bakes lightmaps and assigns master materials.
+* **Security Gatekeeping:** `version-controller` will block merges of the traversal and interaction systems to `main` until `security-engineer` signs off on server-side distance and velocity clamp checks.
 
 ---
 
 ## 🚀 Deployment & Post-Release Checklist
 
-1. [ ] **Model & Rig Integrity:** Confirm the 15-limb character mesh renders properly in both world gameplay and the Inventory UI preview viewport without missing bone bindings or skinning artifacts.
-2. [ ] **Grid Scaling Verification:** Test equipped items with slot modifiers (e.g., "+2 Inventory Slots") to ensure they dynamically grow UI bounds without clipping or visual overlap.
-3. [ ] **Loot Table Sanity Audit:** Verify zero Legendary weapons spawn in world loot drops and confirm Crafting Dust populates as the primary drop item across all test zones.
-4. [ ] **Security & Duplication Test:** Run automated race-condition stress tests against item transfers between pockets, vest, and backpack to ensure 100% server authority.
-5. [ ] **Git Tagging & Release:** `version-controller` applies `v0.4.0-alpha` tag to `main`.
-6. [ ] **Documentation Publication:** `documenter` deploys updated GDD and public release notes to the team repository.
+1. [ ] **Player Model & Animation Check:** Verify 15-limb player mesh renders correctly across all clients with smooth transitions between idle, locomotion, reload, climbing, and zipline animations.
+2. [ ] **Articulated Item Actions:** Confirm weapon magazines detach/re-attach at the correct animation timestamps and shell casings eject dynamically from the ejection port socket.
+3. [ ] **Testing Arena Performance:** Verify the rebuilt modular map runs with stable frame rates, zero missing textures, and consistent collision bounds across all ladders, ziplines, and buildings.
+4. [ ] **Multiplayer Visual Sync Audit:** Conduct multi-client tests to verify:
+   * Items in other players' hands update instantly upon weapon swapping.
+   * Items dropped on the ground appear identically across all screens.
+   * Remote weapon firing displays synchronized muzzle flashes, audio, and shell casing particles.
+5. [ ] **Security & Anti-Exploit Verification:** Confirm server rejects out-of-range pickups, invalid climb speeds, and rapid-fire animation hacks.
+6. [ ] **Git LFS & Version Tag:** `version-controller` tags `v0.4.0-alpha` on `main`.
+7. [ ] **Documentation Publication:** `documenter` pushes the 3D Asset Creation Standards and release notes to `/docs/` and repository root.

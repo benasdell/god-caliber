@@ -32,8 +32,8 @@ export const WEAPON_BLUEPRINTS = {
     spread: 0.015,
     muzzleOffset: new THREE.Vector3(0, 0.04, -0.64),
     restingPosition: new THREE.Vector3(0.24, -0.20, -0.40),
-    adsPos: new THREE.Vector3(0, -0.145, -0.28),
-    adsFov: 60,
+    adsPos: new THREE.Vector3(0, -0.125, -0.24),
+    adsFov: 58,
   },
   weapon_pistol: {
     name: 'P-57 PISTOL',

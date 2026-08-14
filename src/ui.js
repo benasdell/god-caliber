@@ -602,13 +602,23 @@ export class UIManager {
       this.minimap.render(player, circle, enemyTargets);
     }
 
-    // 0. Dynamic Canvas Crosshair Update (Auto-hide when controls.isLocked is false OR weapon.adsProgress > 0.5 OR weapon is scoped)
+    // 0. Dynamic Canvas Crosshair Update (Auto-hide when controls.isLocked is false; Red Dot Sight for Vortex Rifle in ADS; Auto-hide for other ADS/Scopes)
     if (this.hudCrosshairCanvas && this.controls) {
       const adsProgress = weapon ? (weapon.adsProgress ?? weapon.scopeProgress ?? 0) : 0;
       const isScoped = weapon ? weapon.isScoped : false;
-      const shouldHide = !this.controls.isLocked || isScoped || adsProgress > 0.5;
+      const weaponType = weapon ? weapon.currentWeaponType : null;
+      const isVortexRifle = weaponType === 'weapon_ar15';
 
-      if (shouldHide) {
+      if (!this.controls.isLocked) {
+        this.hudCrosshairCanvas.style.display = 'none';
+        this.hudCrosshairCanvas.style.opacity = '0';
+      } else if (isVortexRifle && adsProgress > 0.05) {
+        // Functional Tactical Red Dot Sight for Vortex Assault Rifle ADS
+        this.hudCrosshairCanvas.style.display = 'block';
+        this.hudCrosshairCanvas.style.opacity = '1';
+        const ctx = this.hudCrosshairCanvas.getContext('2d');
+        this.drawRedDotSight(ctx, 160, 160, adsProgress);
+      } else if (isScoped || adsProgress > 0.5) {
         this.hudCrosshairCanvas.style.display = 'none';
         this.hudCrosshairCanvas.style.opacity = '0';
       } else {

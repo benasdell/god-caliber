@@ -12,7 +12,7 @@ export class InventoryUI {
     this.melee = melee;
 
     this.isOpen = false;
-    
+
     // Mode states for recycling / locking
     this.recycleModeActive = false;
     this.lockModeActive = false;
@@ -198,7 +198,7 @@ export class InventoryUI {
           this.onItemMouseDown(e, item);
         }
       });
-      
+
       this.gridContainerEl.appendChild(itemEl);
     });
 
@@ -560,7 +560,7 @@ export class InventoryUI {
     if (primaryItem) {
       this.weapon.setWeaponType(primaryItem.baseId);
       this.weapon.damageMultiplier = 1.0 + (primaryItem.modifiers.weaponDamage || 0.0);
-      
+
       let gunFireRateMod = primaryItem.modifiers.fireRate || 0.0;
       if (glovesItem && glovesItem.modifiers && glovesItem.modifiers.fireRate) {
         gunFireRateMod += glovesItem.modifiers.fireRate;
@@ -578,7 +578,7 @@ export class InventoryUI {
     } else {
       this.weapon.setWeaponType(null); // Stow weapon
       this.weapon.damageMultiplier = 1.0;
-      
+
       const glovesFireRate = glovesItem && glovesItem.modifiers ? (glovesItem.modifiers.fireRate || 0) : 0;
       this.weapon.fireRateMultiplier = 1.0 - glovesFireRate;
       this.weapon.magazineCapacity = 0;
@@ -707,7 +707,7 @@ export class InventoryUI {
     if (isLegendary) {
       const specName = SPECIAL_LEGENDARIES[targetBaseId] || (ITEM_TEMPLATES[targetBaseId] ? ITEM_TEMPLATES[targetBaseId].name : targetBaseId.toUpperCase());
       if (titleEl) titleEl.textContent = `📜 ${specName.toUpperCase()} (LEGENDARY)`;
-      
+
       if (selectRarityEl) {
         selectRarityEl.innerHTML = `<option value="legendary">🟠 Legendary (30 Epic, 20 Legendary Dust)</option>`;
         selectRarityEl.disabled = true;
@@ -762,7 +762,7 @@ export class InventoryUI {
       if (!template) return;
       const specName = SPECIAL_LEGENDARIES[targetBaseId] || `LEGENDARY ${template.name}`;
       const itemType = (template.type === 'primary' || template.type === 'secondary') ? 'weapon' : template.type;
-      
+
       blueprints.push({
         id: `legendary_${targetBaseId}`,
         name: specName,
@@ -833,7 +833,7 @@ export class InventoryUI {
         // Revert since there was no space for old item
         this.inv.addItem(item, item.row, item.col);
         this.inv.equipment[slotName] = alreadyEquipped;
-        
+
         if (window.gameInstance && window.gameInstance.ui) {
           window.gameInstance.ui.addKillFeed("⚠️ NO STORAGE SPACE TO SWAP ITEM!");
         }
@@ -863,7 +863,7 @@ export class InventoryUI {
       this.inv.recycledDust[itemRarity] = 0;
     }
 
-    const rolledDust = Math.floor(Math.random() * 4) + 5; // 5-8 dust
+    const rolledDust = Math.floor(Math.random() * 5) + 12; // 5-8 dust
     this.inv.recycledDust[itemRarity] += rolledDust;
 
     this.inv.removeItem(item);
@@ -914,7 +914,7 @@ export class InventoryUI {
 
     try {
       localStorage.setItem('god_caliber_learned_recipes', JSON.stringify(this.player.learnedRecipes));
-    } catch (e) {}
+    } catch (e) { }
 
     if (window.gameInstance && window.gameInstance.ui) {
       window.gameInstance.ui.addKillFeed(`📜 LEARNED RECIPE: ${recipeItem.name}!`);
@@ -1013,13 +1013,13 @@ export class InventoryUI {
       const item = this.upgradeTargetItem;
       slotEl.classList.add('has-item');
       slotEl.innerHTML = `<div class="upgrade-item-preview">${item.icon}</div>`;
-      
+
       if (infoEl) infoEl.classList.remove('hidden');
       if (nameEl) {
         nameEl.textContent = item.name;
         nameEl.style.color = item.borderColor;
       }
-      
+
       if (item.type === 'recipe') {
         if (costEl) costEl.textContent = "Right-click in Inventory to learn blueprint";
         if (btnEl) {

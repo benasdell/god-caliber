@@ -12,13 +12,13 @@ const _tempDir = new THREE.Vector3();
 const _axisY = new THREE.Vector3(0, 1, 0);
 
 const SPAWN_POINTS = [
-  new THREE.Vector3(0, 3.5, 0),     // Center platform top (elevated tactical point)
-  new THREE.Vector3(0, 3.7, -40),   // North Overlook top
-  new THREE.Vector3(0, 3.7, 40),    // South Overlook top
-  new THREE.Vector3(-30, 0.5, -30), // NW courtyard
-  new THREE.Vector3(30, 0.5, -30),  // NE courtyard
-  new THREE.Vector3(-30, 0.5, 30),  // SW courtyard
-  new THREE.Vector3(30, 0.5, 30),   // SE courtyard
+  new THREE.Vector3(0, 5.0, 0),     // Center platform top (elevated tactical point)
+  //new THREE.Vector3(0, 3.7, -40),   // North Overlook top
+  //new THREE.Vector3(0, 3.7, 40),    // South Overlook top
+  // new THREE.Vector3(-30, 0.5, -30), // NW courtyard
+  // new THREE.Vector3(30, 0.5, -30),  // NE courtyard
+  // new THREE.Vector3(-30, 0.5, 30),  // SW courtyard
+  // new THREE.Vector3(30, 0.5, 30),   // SE courtyard
   new THREE.Vector3(0, 0.5, 55),    // South perimeter
   new THREE.Vector3(-55, 0.5, 0),   // West perimeter
   new THREE.Vector3(55, 0.5, 0),    // East perimeter
@@ -158,7 +158,7 @@ export class Player {
 
       // Check endpoint reached or jump off request (Space / F after 0.35s attach timer)
       const reachedEnd = (this.ziplineDirection === 1 && this.ziplineProgress >= 1.0) ||
-                         (this.ziplineDirection === -1 && this.ziplineProgress <= 0.0);
+        (this.ziplineDirection === -1 && this.ziplineProgress <= 0.0);
 
       const manualDetach = controls.keyState.jump || (controls.keyState.interact && this.ziplineAttachTimer <= 0);
 
@@ -269,7 +269,7 @@ export class Player {
     if (wantsCrouch && (sprintInputHeld || this.isSprinting) && this.onGround && !this.isSliding && currentHorizontalSpeed >= 12.0 && this.slideCooldownTimer <= 0) {
       this.isSliding = true;
       this.slideTimer = 0.8; // 0.8s max slide duration
-      
+
       _tempDir.set(0, 0, -1).applyAxisAngle(_axisY, this.yaw);
       this.velocity.addScaledVector(_tempDir, 12.0); // +12 m/s kinetic slide kick impulse
       sound.playJump();

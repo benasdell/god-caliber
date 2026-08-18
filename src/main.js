@@ -420,16 +420,17 @@ class Game {
       }
     });
 
-    // 5 Scattered Gear Items (2 helmets, 2 vests, 1 gloves) spread far apart around cover structures
-    const gearBaseIds = ['item_helmet', 'item_helmet', 'item_vest', 'item_vest', 'item_gloves'];
+    // 6 Scattered Gear Items (2 helmets, 2 vests, 1 gloves, 1 boots) spread far apart around cover structures
+    const gearBaseIds = ['item_helmet', 'item_helmet', 'item_vest', 'item_vest', 'item_gloves', 'item_boots'];
     const gearPositions = [
       new THREE.Vector3(-18, 1, -15),
       new THREE.Vector3(18, 1, 15),
       new THREE.Vector3(-55, 1, 55),
       new THREE.Vector3(55, 1, 55),
-      new THREE.Vector3(-35, 1, 55)
+      new THREE.Vector3(-35, 1, 55),
+      new THREE.Vector3(35, 1, -55)
     ];
-    const gearRarities = ['normal', 'magic', 'normal', 'rare', 'magic'];
+    const gearRarities = ['normal', 'magic', 'normal', 'rare', 'magic', 'rare'];
 
     gearBaseIds.forEach((baseId, idx) => {
       const pos = gearPositions[idx];
@@ -785,7 +786,7 @@ class Game {
         else if (roll >= 0.40) rarity = 'magic';
         else rarity = 'normal';
 
-        const baseTemplates = ['item_helmet', 'item_vest', 'item_gloves', 'weapon_ar15', 'weapon_pistol', 'weapon_sniper', 'weapon_shotgun', 'weapon_knife'];
+        const baseTemplates = ['item_helmet', 'item_vest', 'item_gloves', 'item_boots', 'weapon_ar15', 'weapon_pistol', 'weapon_sniper', 'weapon_shotgun', 'weapon_knife'];
         baseId = baseTemplates[Math.floor(Math.random() * baseTemplates.length)];
       }
 

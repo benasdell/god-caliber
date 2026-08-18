@@ -1,7 +1,7 @@
 {
   "name": "god-caliber",
   "private": true,
-  "version": "0.3.11b",
+  "version": "0.3.11c",
   "type": "module",
   "scripts": {
     "dev": "vite --host",

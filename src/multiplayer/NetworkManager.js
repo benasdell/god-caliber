@@ -745,7 +745,17 @@ export class NetworkManager {
         peer = this.peerPlayers.get(targetId);
       }
       if (peer) {
-        peer.updateSnapshot(packet.pos, packet.yaw, packet.pitch, packet.hp, packet.weapon, packet.firing, packet.ts);
+        peer.updateSnapshot(
+          packet.pos,
+          packet.yaw,
+          packet.pitch,
+          packet.hp,
+          packet.weapon,
+          packet.firing,
+          packet.ts,
+          packet.boots,
+          packet.speedMultiplier
+        );
       }
 
       if (this.isHost) {
@@ -800,6 +810,8 @@ export class NetworkManager {
       pitch: Number((this.player.pitch || 0).toFixed(3)),
       hp: Math.ceil(this.player.hp ?? 100),
       weapon: this.weapon?.currentWeaponType || 'weapon_ar15',
+      boots: window.gameInstance?.inventory?.equipment?.legs?.baseId || null,
+      speedMultiplier: Number((this.player?.speedMultiplier || 1.0).toFixed(2)),
       firing: firing,
       sprinting: Boolean(this.player.isSprinting),
       sliding: Boolean(this.player.isSliding),

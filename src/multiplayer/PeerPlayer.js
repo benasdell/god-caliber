@@ -14,6 +14,8 @@ export class PeerPlayer {
     this.maxHp = 100;
     this.weapon = 'weapon_ar15';
     this.isFiring = false;
+    this.speedMultiplier = 1.0;
+    this.boots = null;
     this.lastSnapshotTs = 0;
 
     this.kills = 0;
@@ -40,14 +42,14 @@ export class PeerPlayer {
     // Nameplate & HP Bar Sprite
     this.canvas = document.createElement('canvas');
     this.canvas.width = 256;
-    this.canvas.height = 80;
+    this.canvas.height = 64;
     this.ctx = this.canvas.getContext('2d');
 
     this.texture = new THREE.CanvasTexture(this.canvas);
-    const spriteMaterial = new THREE.SpriteMaterial({ map: this.texture, transparent: true });
-    this.nameplate = new THREE.Sprite(spriteMaterial);
-    this.nameplate.scale.set(2.2, 0.7, 1.0);
-    this.nameplate.position.set(0, 2.3, 0);
+    this.spriteMaterial = new THREE.SpriteMaterial({ map: this.texture, transparent: true });
+    this.nameplate = new THREE.Sprite(this.spriteMaterial);
+    this.nameplate.position.set(0, 2.1, 0);
+    this.nameplate.scale.set(1.5, 0.375, 1.0);
     this.mesh.add(this.nameplate);
 
     this.renderNameplate();
@@ -55,72 +57,38 @@ export class PeerPlayer {
 
   renderNameplate() {
     const ctx = this.ctx;
-    const name = this.displayName;
-    const hp = Math.max(0, Math.min(this.maxHp, this.hp));
+    ctx.clearRect(0, 0, 256, 64);
 
-    ctx.clearRect(0, 0, 256, 80);
+    // Background pill
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.roundRect(10, 8, 236, 48, 8);
+    ctx.fill();
 
-    // Card background
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    if (typeof ctx.roundRect === 'function') {
-      ctx.beginPath();
-      ctx.roundRect(8, 6, 240, 68, 8);
-      ctx.fill();
-      ctx.strokeStyle = '#00ffcc';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    } else {
-      ctx.fillRect(8, 6, 240, 68);
-    }
+    // Border
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 2;
+    ctx.roundRect(10, 8, 236, 48, 8);
+    ctx.stroke();
 
     // Name text
-    ctx.font = 'bold 18px Roboto, sans-serif';
     ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(name, 128, 24);
+    ctx.fillText(this.displayName, 128, 28);
 
-    // Health bar background
-    const barX = 24;
-    const barY = 44;
-    const barW = 208;
-    const barH = 12;
+    // Health Bar Background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(24, 36, 208, 12);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    if (typeof ctx.roundRect === 'function') {
-      ctx.beginPath();
-      ctx.roundRect(barX, barY, barW, barH, 4);
-      ctx.fill();
-    } else {
-      ctx.fillRect(barX, barY, barW, barH);
-    }
-
-    // Health bar fill
-    const pct = hp / this.maxHp;
-    if (pct > 0) {
-      const fillW = Math.max(4, barW * pct);
-      const fillColor = pct > 0.5 ? '#00f0ff' : (pct > 0.25 ? '#ffb703' : '#ff2a6d');
-      ctx.fillStyle = fillColor;
-      if (typeof ctx.roundRect === 'function') {
-        ctx.beginPath();
-        ctx.roundRect(barX, barY, fillW, barH, 4);
-        ctx.fill();
-      } else {
-        ctx.fillRect(barX, barY, fillW, barH);
-      }
-    }
-
-    // HP Text
-    ctx.font = 'bold 10px Roboto, sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${Math.ceil(hp)} / ${this.maxHp}`, 128, barY + barH / 2);
+    // Health Bar Fill
+    const hpRatio = Math.max(0, Math.min(1, this.hp / this.maxHp));
+    ctx.fillStyle = hpRatio > 0.5 ? '#00f0ff' : (hpRatio > 0.25 ? '#ffb703' : '#ff2a6d');
+    ctx.fillRect(24, 36, 208 * hpRatio, 12);
 
     this.texture.needsUpdate = true;
   }
 
-  updateSnapshot(pos, yaw, pitch, hp, weapon, firing, ts) {
+  updateSnapshot(pos, yaw, pitch, hp, weapon, firing, ts, boots = null, speedMultiplier = 1.0) {
     if (ts !== undefined && ts !== null) {
       if (ts < this.lastSnapshotTs) {
         return;
@@ -152,6 +120,14 @@ export class PeerPlayer {
       this.isFiring = Boolean(firing);
     }
 
+    if (boots !== undefined && boots !== null) {
+      this.boots = boots;
+    }
+
+    if (speedMultiplier !== undefined && speedMultiplier !== null && typeof speedMultiplier === 'number') {
+      this.speedMultiplier = speedMultiplier;
+    }
+
     if (hpChanged) {
       this.renderNameplate();
     }
@@ -168,7 +144,7 @@ export class PeerPlayer {
     const estVelocity = this.mesh.position.clone().sub(prevPos).divideScalar(Math.max(0.001, deltaTime));
 
     if (this.animator) {
-      this.animator.update(deltaTime, estVelocity, true, false, false, this.isFiring);
+      this.animator.update(deltaTime, estVelocity, true, false, false, this.isFiring, this.speedMultiplier);
     }
 
     if (this.boundingSphere) {

@@ -173,5 +173,17 @@
 - **Spectator State Hard Input & HUD Masking**:
   When a player enters spectator mode, all combat HUD elements (`#hud-bottom`, `#hud-crosshair-canvas`, `#interaction-prompt`, `#sniper-scope`) must be masked, and the `#spectator-banner` HUD activated. Combat actions (primary/secondary fire, quick melee, ADS, weapon swaps, inventory opening, raycasting interactions) must be hard-suppressed at both the control and execution layers while preserving free flycam navigation and `Tab` scoreboard visibility.
 
+---
+
+## 15. Passive Health Regeneration, Boots Physics & Air-Jump Invariants (Hotfix 0.3.11c)
+
+- **Continuous Passive Health Regeneration & Ring DPS Dominance**:
+  Passive health regeneration ($+2.0\text{ HP / sec}$) runs in `Player.update(deltaTime)` whenever the player is alive and `hp < maxHp`. The Battle Royale zone damage ($5.0\text{ DPS}$ to $80.0\text{ DPS}$) strictly dominates this passive tick, preserving the lethal hazard of out-of-zone positioning while affording tactical combat sustain during extended gunfights.
+- **Boots Physics Integration & Edge-Triggered Air Jump**:
+  Boots modify horizontal movement speed (`speedMultiplier: 1.06` to `1.15`) and vertical jump impulses (`jumpMultiplier: 1.00` to `1.35`). Mid-air double jumping on Legendary Void Treads (`allowAirJump: true`) requires tracking edge-triggered jump input (`controls.keyState.jump && !this._jumpKeyDownLastFrame`) to prevent continuous propulsion in a single keypress. `hasAirJumped` must reliably reset to `false` whenever `onGround` is confirmed in the depenetration loop.
+- **Multiplayer Stride Scaling & Anti-Tamper Velocity Limits**:
+  When broadcasting 20Hz WebRTC state packets, remote player procedural locomotion gait frequencies (`gaitFreq` in `ProceduralAnimator.js`) must be scaled by `speedMultiplier` to eliminate foot-sliding at boosted sprint speeds. Host state handlers validate incoming velocity vectors against maximum gear-enhanced thresholds ($v_{\text{horiz}} \le 34\text{ m/s}$, $v_y \le 20\text{ m/s}$) to guard against client tampering.
+
+
 
 

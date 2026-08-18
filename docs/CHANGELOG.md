@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [Patch 0.3 Series — Multiplayer, Vision & System Overhauls](#-patch-03-series--multiplayer-vision--system-overhauls)
+  - [Sub-Patch 0.3.11c — Hotfix: Passive Health Regen, Boots Item Class & Air-Jump Physics](#sub-patch-0311c--hotfix-passive-health-regen-boots-item-class--air-jump-physics)
   - [Sub-Patch 0.3.11b — Hotfix: Spawn Clearance, Crafting Dust CDF, Singleplayer Death Loop & Spectator Masking](#sub-patch-0311b--hotfix-spawn-clearance-crafting-dust-cdf-singleplayer-death-loop--spectator-masking)
   - [Sub-Patch 0.3.9e — Hotfix: Recipe Blueprint Unlocking & Dynamic Legendary Crafting](#sub-patch-039e--hotfix-recipe-blueprint-unlocking--dynamic-legendary-crafting)
   - [Sub-Patch 0.3.9d — Hotfix: Match Restart Gear Reset & Secondary Weapon Auto-Equip](#sub-patch-039d--hotfix-match-restart-gear-reset--secondary-weapon-auto-equip)
@@ -33,6 +34,27 @@
 ---
 
 ## 🛡️ Patch 0.3 Series — Multiplayer, Vision & System Overhauls
+
+### Sub-Patch 0.3.11c — Hotfix: Passive Health Regen, Boots Item Class & Air-Jump Physics
+*Release Date: August 2026*
+
+* **Global Passive Health Regeneration Loop**:
+  - Implemented continuous $+2.0\text{ HP / sec}$ health regeneration in `src/player.js` when alive and below `maxHp`.
+  - Tuned strictly against zone collapse DPS ($>5.0\text{ DPS}$ to $80.0\text{ DPS}$) to guarantee players cannot out-heal the circle.
+* **Boots Item Class & Physics Hook**:
+  - Registered `item_boots` mapped to the paperdoll `legs` / `BOOTS` inventory slot with drag-and-drop auto-equip support.
+  - Implemented 3 tiers of movement & jump boots:
+    - **Scout Striders (Common / Tier 1)**: $+6\%$ Movement Speed ($1.06\times$), $+0\%$ Jump Height.
+    - **Vanguard Jump Boots (Rare / Tier 2)**: $+10\%$ Movement Speed ($1.10\times$), $+20\%$ Jump Height ($1.20\times$).
+    - **Aethel-Step Void Treads (Legendary / Tier 3)**: $+15\%$ Movement Speed ($1.15\times$), $+35\%$ Jump Height ($1.35\times$), `allowAirJump: true`.
+  - Added Legendary Air-Jump hook in `src/player.js`: edge-triggered spacebar detection executing a secondary mid-air jump impulse before touching ground.
+* **Drop Pools, Crafting Bench & 3D Ground Assets**:
+  - Added `item_boots` to monster loot drop tables in `src/targets.js`, initial world scatter loot, and tactical crate tables in `src/main.js`.
+  - Added Scout Striders and learned legendary blueprints to Crafting Bench with a dedicated `BOOTS` category filter in `index.html` and `src/inventory-ui.js`.
+  - Created procedural 3D dual-boot mesh pairs in `src/world-items.js` with dynamic rarity loot beams and emissive shaders.
+* **Multiplayer WebRTC Replication**:
+  - Replicated equipped `boots` and `speedMultiplier` in 20Hz WebRTC state snapshots via `src/multiplayer/NetworkManager.js`.
+  - Scaled remote player procedural walking/sprinting gait animation frequency in `src/animation/ProceduralAnimator.js` and `src/multiplayer/PeerPlayer.js` to eliminate foot-sliding at higher movement velocities.
 
 ### Sub-Patch 0.3.11b — Hotfix: Spawn Clearance, Crafting Dust CDF, Singleplayer Death Loop & Spectator Masking
 *Release Date: August 2026*

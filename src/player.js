@@ -95,6 +95,9 @@ export class Player {
     this.damageReduction = 0.0;
     this.speedMultiplier = 1.0;
     this.jumpMultiplier = 1.0;
+    this.allowAirJump = false;
+    this.hasAirJumped = false;
+    this._jumpKeyDownLastFrame = false;
 
     // Movement distance for bobbing
     this.moveDistance = 0;
@@ -195,6 +198,11 @@ export class Player {
 
       this.position.copy(this.camera.position);
       return;
+    }
+
+    // --- PASSIVE HEALTH REGENERATION (+2.0 HP/s) ---
+    if (!this.isDead && !this.isSpectator && this.hp < this.maxHp) {
+      this.hp = Math.min(this.maxHp, this.hp + 2.0 * deltaTime);
     }
 
     // --- ZIPLINE MOVEMENT PHYSICS ---
@@ -389,7 +397,9 @@ export class Player {
       }
     }
 
-    // Jump Execution (Supports Ground Jump, Slide-Jumping, and B-Hopping)
+    // Jump Execution (Supports Ground Jump, Slide-Jumping, B-Hopping, and Legendary Air-Jump)
+    const isJumpPressedThisFrame = Boolean(controls.keyState.jump && !this._jumpKeyDownLastFrame);
+
     if (controls.keyState.jump && (this.onGround || this.isSliding || this.landGraceTimer > 0)) {
       if (this.isSliding) {
         this.isSliding = false;
@@ -399,8 +409,14 @@ export class Player {
       this.velocity.y = this.JUMP_FORCE * this.jumpMultiplier;
       this.onGround = false;
       this.landGraceTimer = 0;
+      this.hasAirJumped = false;
+      sound.playJump();
+    } else if (isJumpPressedThisFrame && !this.onGround && this.allowAirJump && !this.hasAirJumped && this.landGraceTimer <= 0) {
+      this.hasAirJumped = true;
+      this.velocity.y = this.JUMP_FORCE * this.jumpMultiplier;
       sound.playJump();
     }
+    this._jumpKeyDownLastFrame = Boolean(controls.keyState.jump);
 
     if (!this.onGround) {
       // Air Control / Air-Strafing Wish Vector Projection
@@ -497,6 +513,7 @@ export class Player {
 
       if (result.normal.y > 0.25) {
         this.onGround = true;
+        this.hasAirJumped = false;
       }
 
       if (!this.onGround) {
@@ -594,6 +611,8 @@ export class Player {
     this.hp = this.maxHp;
     this.isDead = false;
     this.isInvulnerable = false;
+    this.hasAirJumped = false;
+    this._jumpKeyDownLastFrame = false;
     this.velocity.set(0, 0, 0);
 
     const safeSpawn = this.getSafeSpawnPoint();

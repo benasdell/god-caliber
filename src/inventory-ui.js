@@ -509,7 +509,7 @@ export class InventoryUI {
   checkSlotTypeMatch(item, slotName) {
     if (slotName === 'head' && item.type === 'head') return true;
     if (slotName === 'torso' && item.type === 'torso') return true;
-    if (slotName === 'legs' && item.type === 'legs') return true;
+    if (slotName === 'legs' && (item.type === 'legs' || item.type === 'boots')) return true;
     if (slotName === 'gloves' && item.type === 'gloves') return true;
     if (slotName === 'primary' && item.type === 'primary') return true;
     if (slotName === 'secondary' && item.type === 'primary') return true; // Rifle can go in secondary slot
@@ -551,6 +551,7 @@ export class InventoryUI {
     this.player.damageReduction = damageReduction;
     this.player.speedMultiplier = speedMultiplier;
     this.player.jumpMultiplier = jumpMultiplier;
+    this.player.allowAirJump = Boolean(this.inv.equipment.legs?.allowAirJump || this.inv.equipment.legs?.modifiers?.allowAirJump);
 
     // Adjust current health relative to new Max HP
     if (this.player.maxHp > oldMaxHp) {
@@ -754,7 +755,8 @@ export class InventoryUI {
       { id: 'weapon_knife', name: 'Combat Knife', type: 'weapon', icon: '🗡️', cost: '15+ Normal Dust' },
       { id: 'item_helmet', name: 'Tactical Helmet', type: 'helmet', icon: '🪖', cost: '15+ Normal Dust' },
       { id: 'item_vest', name: 'Combat Vest', type: 'vest', icon: '🦺', cost: '15+ Normal Dust' },
-      { id: 'item_gloves', name: 'Tactical Gloves', type: 'gloves', icon: '🧤', cost: '15+ Normal Dust' }
+      { id: 'item_gloves', name: 'Tactical Gloves', type: 'gloves', icon: '🧤', cost: '15+ Normal Dust' },
+      { id: 'item_boots', name: 'Scout Striders', type: 'boots', icon: '🥾', cost: '15+ Normal Dust' }
     ];
 
     // Append learned Legendary blueprints
@@ -763,7 +765,11 @@ export class InventoryUI {
       const template = ITEM_TEMPLATES[targetBaseId];
       if (!template) return;
       const specName = SPECIAL_LEGENDARIES[targetBaseId] || `LEGENDARY ${template.name}`;
-      const itemType = (template.type === 'primary' || template.type === 'secondary') ? 'weapon' : template.type;
+      let itemType = template.type;
+      if (itemType === 'primary' || itemType === 'secondary') itemType = 'weapon';
+      else if (itemType === 'head') itemType = 'helmet';
+      else if (itemType === 'torso') itemType = 'vest';
+      else if (itemType === 'legs') itemType = 'boots';
 
       blueprints.push({
         id: `legendary_${targetBaseId}`,

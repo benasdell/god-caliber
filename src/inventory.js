@@ -48,13 +48,15 @@ export const SPECIAL_LEGENDARIES = {
   weapon_knife: "NEON SHARD",
   item_helmet: "APOLLO NEURAL HELMET",
   item_vest: "TITAN AEGIS VEST",
-  item_gloves: "CYPHER GRIP GLOVES"
+  item_gloves: "CYPHER GRIP GLOVES",
+  item_boots: "AETHEL-STEP VOID TREADS"
 };
 
 export const ITEM_TEMPLATES = {
   item_helmet: { name: 'TACTICAL HELMET', type: 'head', width: 2, height: 2, icon: '🪖', desc: 'Protective headgear.' },
   item_vest: { name: 'COMBAT VEST', type: 'torso', width: 2, height: 3, icon: '🦺', desc: 'Ballistic plate armor.' },
   item_gloves: { name: 'TACTICAL GLOVES', type: 'gloves', width: 2, height: 2, icon: '🧤', desc: 'Combat-ready handwear.' },
+  item_boots: { name: 'SCOUT STRIDERS', type: 'legs', width: 2, height: 2, icon: '🥾', desc: 'Tactical mobility footwear.' },
   weapon_ar15: { name: 'COMBAT RIFLE', type: 'primary', width: 3, height: 2, icon: '🔫', desc: 'Standard issue modular rifle.' },
   weapon_pistol: { name: 'P-57 PISTOL', type: 'primary', width: 2, height: 2, icon: '🔫', desc: 'Futuristic tactical sidearm.' },
   weapon_sniper: { name: 'A-20 SNIPER RIFLE', type: 'primary', width: 4, height: 2, icon: '🔭', desc: 'High-caliber bolt-action sniper.' },
@@ -169,7 +171,7 @@ export class InventoryManager {
     }
 
     if (baseId === 'item_recipe') {
-      const bases = ['item_helmet', 'item_vest', 'item_gloves', 'weapon_ar15', 'weapon_pistol', 'weapon_sniper', 'weapon_shotgun', 'weapon_knife'];
+      const bases = ['item_helmet', 'item_vest', 'item_gloves', 'item_boots', 'weapon_ar15', 'weapon_pistol', 'weapon_sniper', 'weapon_shotgun', 'weapon_knife'];
       const targetBase = bases[Math.floor(Math.random() * bases.length)];
       return {
         id: uniqueId,
@@ -194,8 +196,52 @@ export class InventoryManager {
 
     const rarity = RARITIES[rarityName] || RARITIES.normal;
     const itemType = template.type;
-    const modPool = MODIFIER_POOL[itemType] || [];
 
+    // Specialized Tiered Boots Generation (Hotfix 0.3.11c)
+    if (baseId === 'item_boots') {
+      let bootName = 'SCOUT STRIDERS';
+      let bootModifiers = { moveSpeed: 0.06 };
+      let bootModsList = ['+6% Movement Speed'];
+      let allowAirJump = false;
+
+      if (rarityName === 'magic') {
+        bootName = 'MAGIC SCOUT STRIDERS';
+        bootModifiers = { moveSpeed: 0.08, jumpForce: 0.10 };
+        bootModsList = ['+8% Movement Speed', '+10% Jump Height'];
+      } else if (rarityName === 'rare') {
+        bootName = 'VANGUARD JUMP BOOTS';
+        bootModifiers = { moveSpeed: 0.10, jumpForce: 0.20 };
+        bootModsList = ['+10% Movement Speed', '+20% Jump Height'];
+      } else if (rarityName === 'epic') {
+        bootName = 'EPIC VANGUARD JUMP BOOTS';
+        bootModifiers = { moveSpeed: 0.12, jumpForce: 0.25, crouchSpeed: 0.15 };
+        bootModsList = ['+12% Movement Speed', '+25% Jump Height', '+15% Crouch Movement Speed'];
+      } else if (rarityName === 'legendary') {
+        bootName = 'AETHEL-STEP VOID TREADS';
+        bootModifiers = { moveSpeed: 0.15, jumpForce: 0.35, allowAirJump: true };
+        bootModsList = ['+15% Movement Speed', '+35% Jump Height', '⚡ Special Perk: Air Double-Jump Enabled'];
+        allowAirJump = true;
+      }
+
+      return {
+        id: uniqueId,
+        baseId: baseId,
+        name: bootName,
+        type: 'legs',
+        width: template.width,
+        height: template.height,
+        color: `linear-gradient(135deg, #131a26 0%, ${rarity.color}25 100%)`,
+        borderColor: rarity.color,
+        rarity: rarityName,
+        icon: template.icon,
+        desc: template.desc,
+        allowAirJump: allowAirJump,
+        modifiers: bootModifiers,
+        modifiersList: bootModsList
+      };
+    }
+
+    const modPool = MODIFIER_POOL[itemType] || [];
     const modifiers = {};
     const selectedModsList = [];
 

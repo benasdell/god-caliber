@@ -135,13 +135,15 @@ export class TargetManager {
     else if (roll > 0.75) rarity = 'rare';
     else if (roll > 0.45) rarity = 'magic';
 
-    const categories = ['weapon', 'helmet', 'vest', 'gloves'];
+    const categories = ['weapon', 'helmet', 'vest', 'gloves', 'boots'];
     const cat = categories[Math.floor(Math.random() * categories.length)];
 
     let subType = null;
     if (cat === 'weapon') {
       const weapons = ['weapon_pistol', 'weapon_shotgun', 'weapon_ar15', 'weapon_sniper'];
       subType = weapons[Math.floor(Math.random() * weapons.length)];
+    } else if (cat === 'boots') {
+      subType = 'item_boots';
     } else {
       subType = `item_${cat}`;
     }

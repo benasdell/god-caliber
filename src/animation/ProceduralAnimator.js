@@ -17,7 +17,7 @@ export class ProceduralAnimator {
     this.recoilTimer = 0;
   }
 
-  update(dt, velocity, isGrounded = true, isSliding = false, isReloading = false, isFiring = false) {
+  update(dt, velocity, isGrounded = true, isSliding = false, isReloading = false, isFiring = false, speedMultiplier = 1.0) {
     this.time += dt;
 
     _v1.copy(velocity);
@@ -53,7 +53,7 @@ export class ProceduralAnimator {
       if (leftLeg) leftLeg.rotation.x = THREE.MathUtils.lerp(leftLeg.rotation.x, -1.20, dt * 10.0);
       if (rightLeg) rightLeg.rotation.x = THREE.MathUtils.lerp(rightLeg.rotation.x, 0.70, dt * 10.0);
     } else if (this.locomotionState === 'SPRINT') {
-      const gaitFreq = 14.5;
+      const gaitFreq = 14.5 * speedMultiplier;
       const strideAngle = 0.72;
       const legCycle = Math.sin(this.time * gaitFreq);
 
@@ -65,7 +65,7 @@ export class ProceduralAnimator {
       if (leftArm && !isReloading) leftArm.rotation.x = -legCycle * strideAngle * 0.8;
       if (rightArm && !isReloading) rightArm.rotation.x = legCycle * strideAngle * 0.8;
     } else if (this.locomotionState === 'WALK') {
-      const gaitFreq = 8.5;
+      const gaitFreq = 8.5 * speedMultiplier;
       const strideAngle = 0.42;
       const legCycle = Math.sin(this.time * gaitFreq);
 

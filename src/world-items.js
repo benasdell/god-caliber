@@ -108,6 +108,8 @@ export class WorldItemManager {
     this.geo_buckle = new THREE.BoxGeometry(0.03, 0.04, 0.16);
 
     this.geo_glove = new THREE.BoxGeometry(0.1, 0.05, 0.15);
+    this.geo_boot_sole = new THREE.BoxGeometry(0.08, 0.04, 0.18);
+    this.geo_boot_shaft = new THREE.BoxGeometry(0.07, 0.14, 0.08);
   }
 
   // Spawn an item in the 3D world
@@ -324,6 +326,23 @@ export class WorldItemManager {
       const gloveR = new THREE.Mesh(this.geo_glove, this.polymerMat);
       gloveR.position.set(0.08, 0.02, 0);
       addPart(gloveR);
+
+    } else if (itemData.type === 'legs' || itemData.type === 'boots' || itemData.baseId === 'item_boots') {
+      const soleL = new THREE.Mesh(this.geo_boot_sole, this.polymerMat);
+      soleL.position.set(-0.08, 0.02, 0);
+      addPart(soleL);
+
+      const shaftL = new THREE.Mesh(this.geo_boot_shaft, this.steelMat);
+      shaftL.position.set(-0.08, 0.10, -0.02);
+      addPart(shaftL);
+
+      const soleR = new THREE.Mesh(this.geo_boot_sole, this.polymerMat);
+      soleR.position.set(0.08, 0.02, 0);
+      addPart(soleR);
+
+      const shaftR = new THREE.Mesh(this.geo_boot_shaft, this.steelMat);
+      shaftR.position.set(0.08, 0.10, -0.02);
+      addPart(shaftR);
 
     } else if (itemData.type === 'dust' || itemData.baseId === 'item_dust_vial') {
       const rarityKey = (itemData.rarity || 'normal').toLowerCase();

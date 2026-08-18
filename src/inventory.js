@@ -61,7 +61,8 @@ export const ITEM_TEMPLATES = {
   weapon_shotgun: { name: 'S-12 SHOTGUN', type: 'primary', width: 3, height: 2, icon: '💥', desc: 'Close-quarters spread shotgun.' },
   weapon_knife: { name: 'COMBAT KNIFE', type: 'melee', width: 2, height: 1, icon: '🗡️', desc: 'High-grade tactical steel.' },
   item_recipe: { name: 'LEGENDARY RECIPE', type: 'recipe', width: 2, height: 2, icon: '📜', desc: 'A rare blueprint for crafting a legendary item.' },
-  item_respawn_token: { name: 'RESPAWN TOKEN', type: 'consumable', width: 1, height: 1, icon: '📿', desc: 'Grants one extra life. On death, respawn inside the circle at 50% HP.' }
+  item_respawn_token: { name: 'RESPAWN TOKEN', type: 'consumable', width: 1, height: 1, icon: '📿', desc: 'Grants one extra life. On death, respawn inside the circle at 50% HP.' },
+  item_dust_vial: { name: 'CRAFTING DUST VIAL', type: 'dust', width: 1, height: 1, icon: '🧪', desc: 'Concentrated Crafting Dust used for forging and tier upgrades.' }
 };
 
 export class InventoryManager {
@@ -134,6 +135,26 @@ export class InventoryManager {
   // Generates randomized items with tiered modifier statistics
   generateRandomItem(baseId, rarityName) {
     const uniqueId = `${baseId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+    if (baseId === 'item_dust_vial') {
+      const amount = Math.floor(Math.random() * 11) + 5; // 5 to 15 dust units
+      return {
+        id: uniqueId,
+        baseId: 'item_dust_vial',
+        name: `CRAFTING DUST VIAL (${amount})`,
+        type: 'dust',
+        width: 1,
+        height: 1,
+        color: `linear-gradient(135deg, #131a26 0%, #d946ef25 100%)`,
+        borderColor: '#d946ef',
+        rarity: 'epic',
+        icon: '🧪',
+        desc: `Contains ${amount} units of purified Crafting Dust. Right-click or pick up to add to crafting reserves.`,
+        dustAmount: amount,
+        modifiers: {},
+        modifiersList: [`+${amount} Crafting Dust`]
+      };
+    }
 
     if (baseId === 'item_recipe') {
       const bases = ['item_helmet', 'item_vest', 'item_gloves', 'weapon_ar15', 'weapon_pistol', 'weapon_sniper', 'weapon_shotgun', 'weapon_knife'];

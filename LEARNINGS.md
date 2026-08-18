@@ -141,3 +141,23 @@
 - **Safe Scene Initialization Operator**:
   Never use `bpy.ops.wm.read_factory_settings()` in automated Blender scripts, as it is blocked by Blender's LLM sandbox. Use `bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)` instead.
 
+---
+
+## 13. Multiplayer World Synchronization, AI LoS Occlusion & Spectator Lifecycle Invariants (Patch 0.3.11 Sentry)
+
+- **Host-Authoritative Entity & Loot Synchronization**:
+  In PeerJS peer-to-peer multiplayer topologies without a dedicated backend server, the lobby host acts as the authoritative world state manager. Critical world actions (`item_pickup`, `item_drop`, `container_loot`, `enemy_damage`) must be sent as RPCs to the host. The host validates state, updates its local registries, and broadcasts synchronized state changes (`item_destroyed`, `item_spawned`, `container_state_sync`, `enemy_sync`) to all connected peers.
+- **World State Snapshot Initializer (`world_init`)**:
+  When a new client joins an active multiplayer match (`identify`), the host must transmit a complete `world_init` snapshot containing all active ground loot positions/item data, current chest opened/closed states, and current match phase/circle stage. This ensures late-joining clients see identical world states without desync.
+- **Line-of-Sight (LoS) Raycasting for AI Combat**:
+  Never trigger enemy bot ranged attacks based on pure euclidean distance alone. Always cast a direct ray from the enemy's muzzle/head origin to the target player camera against `worldOctree` (`worldOctree.rayIntersect(ray)`). If a solid static environment obstacle is detected between the enemy and player (`hit.distance < dist - 0.4`), cancel projectile spawning and enter lateral strafe / repositioning steering behaviors.
+- **Strict 2D Horizontal Plane BR Circle Calculations**:
+  Battle Royale shrinking ring safe zones must calculate distance strictly on the horizontal $XZ$ plane: $D^2 = (P_x - C_x)^2 + (P_z - C_z)^2$. Ignoring vertical elevation height $Y$ prevents players from taking out-of-bounds damage when standing on tall sniper towers, elevated walkways, or access ramps located within the safe zone.
+- **Session Lifecycle Decoupling & Spectator Flycam**:
+  Never couple the master game loop or lobby session lifetime to individual player death. When any player (including the lobby host) takes fatal damage without a Respawn Token, scatter their equipped and bag items into a physical ground loot pile and transition the local entity into a noclip flycam spectator (`enableSpectatorMode()`). The session only concludes when all human operators are eliminated (Defeat) or when 1 surviving human operator eliminates the remaining enemy force (Victory).
+- **Dynamic 2D Canvas ADS Reticle Projections**:
+  When aiming down sights (ADS), render weapon-specific holographic reticles (Pistol concentric ring, Assault Rifle holographic red dot, Shotgun wide pellet cone) on the 2D HUD canvas overlay with smooth opacity transitions scaled by `adsProgress`. Always provide defensive method declarations on `UIManager` to prevent `TypeError: this.drawRedDotSight is not a function` runtime crashes during ADS transitions.
+- **Guaranteed Monster Dust Economy Injections**:
+  To maintain a consistent crafting loop across all playstyles, monsters must guarantee dropping a glowing Crafting Dust Vial item (5–15 dust units) upon elimination, in addition to standard equipment probability rolls.
+
+

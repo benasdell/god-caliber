@@ -500,6 +500,90 @@ export class UIManager {
     ctx.restore();
   }
 
+  drawRedDotSight(ctx, width, height, adsProgress) {
+    this.drawADSReticle(ctx, width, height, adsProgress, 'weapon_ar15');
+  }
+
+  drawADSReticle(ctx, width, height, adsProgress, weaponType) {
+    ctx.clearRect(0, 0, width, height);
+    if (adsProgress <= 0.02) return;
+
+    const cx = width / 2;
+    const cy = height / 2;
+    const alpha = Math.max(0, Math.min(1, adsProgress));
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    if (weaponType === 'weapon_pistol') {
+      // Pistol: Concentric dot with high-transparency circular border
+      ctx.strokeStyle = 'rgba(0, 255, 204, 0.7)';
+      ctx.fillStyle = '#00ffcc';
+      ctx.lineWidth = 1.5;
+
+      // Outer ring
+      ctx.beginPath();
+      ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Center crisp dot
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (weaponType === 'weapon_shotgun') {
+      // Shotgun: Wide-diameter circular ring matching 12-pellet spread cone
+      ctx.strokeStyle = 'rgba(255, 183, 3, 0.85)';
+      ctx.fillStyle = '#ffb703';
+      ctx.lineWidth = 2;
+
+      // Outer wide spread circle
+      ctx.beginPath();
+      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 4 quadrant ticks
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 26); ctx.lineTo(cx, cy - 18);
+      ctx.moveTo(cx, cy + 18); ctx.lineTo(cx, cy + 26);
+      ctx.moveTo(cx - 26, cy); ctx.lineTo(cx - 18, cy);
+      ctx.moveTo(cx + 18, cy); ctx.lineTo(cx + 26, cy);
+      ctx.stroke();
+
+      // Center dot
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Default / Vortex Assault Rifle: Tactical Holographic Red Dot Sight
+      ctx.shadowColor = '#ff2a6d';
+      ctx.shadowBlur = 8;
+      ctx.strokeStyle = '#ff2a6d';
+      ctx.fillStyle = '#ff2a6d';
+
+      // Outer holographic bracket circle
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Horizontal and vertical reticle lines
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.moveTo(cx - 20, cy); ctx.lineTo(cx - 14, cy);
+      ctx.moveTo(cx + 14, cy); ctx.lineTo(cx + 20, cy);
+      ctx.moveTo(cx, cy - 20); ctx.lineTo(cx, cy - 14);
+      ctx.moveTo(cx, cy + 14); ctx.lineTo(cx, cy + 20);
+      ctx.stroke();
+
+      // Central glowing red dot
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
   initRebindTable() {
     if (!this.rebindTableEl || !this.controls) return;
     this.renderRebindRows();
@@ -602,25 +686,25 @@ export class UIManager {
       this.minimap.render(player, circle, enemyTargets);
     }
 
-    // 0. Dynamic Canvas Crosshair Update (Auto-hide when controls.isLocked is false; Red Dot Sight for Vortex Rifle in ADS; Auto-hide for other ADS/Scopes)
+    // 0. Dynamic Canvas Crosshair & ADS Reticle Update
     if (this.hudCrosshairCanvas && this.controls) {
       const adsProgress = weapon ? (weapon.adsProgress ?? weapon.scopeProgress ?? 0) : 0;
-      const isScoped = weapon ? weapon.isScoped : false;
+      const isSniper = weapon?.currentBlueprint?.isSniper;
       const weaponType = weapon ? weapon.currentWeaponType : null;
-      const isVortexRifle = weaponType === 'weapon_ar15';
 
       if (!this.controls.isLocked) {
         this.hudCrosshairCanvas.style.display = 'none';
         this.hudCrosshairCanvas.style.opacity = '0';
-      } else if (isVortexRifle && adsProgress > 0.05) {
-        // Functional Tactical Red Dot Sight for Vortex Assault Rifle ADS
+      } else if (isSniper && adsProgress > 0.5) {
+        // Sniper handles its own optical scope overlay
+        this.hudCrosshairCanvas.style.display = 'none';
+        this.hudCrosshairCanvas.style.opacity = '0';
+      } else if (adsProgress > 0.05) {
+        // Functional Tactical 2D ADS Reticle (Pistol, AR-15, Shotgun)
         this.hudCrosshairCanvas.style.display = 'block';
         this.hudCrosshairCanvas.style.opacity = '1';
         const ctx = this.hudCrosshairCanvas.getContext('2d');
-        this.drawRedDotSight(ctx, 160, 160, adsProgress);
-      } else if (isScoped || adsProgress > 0.5) {
-        this.hudCrosshairCanvas.style.display = 'none';
-        this.hudCrosshairCanvas.style.opacity = '0';
+        this.drawADSReticle(ctx, 160, 160, adsProgress, weaponType);
       } else {
         this.hudCrosshairCanvas.style.display = 'block';
         this.hudCrosshairCanvas.style.opacity = '1';

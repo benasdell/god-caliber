@@ -16,6 +16,26 @@ const _totalForce = new THREE.Vector3();
 const _tempDir = new THREE.Vector3();
 const _envSphere = new THREE.Sphere(new THREE.Vector3(), 0.7);
 
+const _losRay = new THREE.Ray();
+const _losDir = new THREE.Vector3();
+
+export function hasLineOfSight(originPos, targetPos, worldOctree) {
+  if (!worldOctree || !originPos || !targetPos) return true;
+  _losDir.subVectors(targetPos, originPos);
+  const dist = _losDir.length();
+  if (dist <= 0.5) return true;
+  _losDir.normalize();
+  _losRay.origin.copy(originPos);
+  _losRay.direction.copy(_losDir);
+
+  const hit = worldOctree.rayIntersect(_losRay);
+  if (hit && hit.distance < dist - 0.4) {
+    // Intervening solid static geometry blocks line of sight
+    return false;
+  }
+  return true;
+}
+
 export class TargetManager {
   constructor(scene, worldOctree, uiManager) {
     this.scene = scene;
@@ -76,6 +96,21 @@ export class TargetManager {
 
   rollLootDrop(position) {
     if (!this.worldItemManager) return;
+    const inv = this.inventoryManager || (window.gameInstance ? window.gameInstance.inventory : null);
+    if (!inv) return;
+
+    // Feature 3: Guaranteed 100% Monster Crafting Dust Drop
+    const dustVial = inv.generateRandomItem('item_dust_vial', 'epic');
+    if (dustVial) {
+      const dustVelocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 4.0,
+        3.0 + Math.random() * 2.0,
+        (Math.random() - 0.5) * 4.0
+      );
+      this.worldItemManager.spawnItem(dustVial, position.clone().add(new THREE.Vector3(0, 0.4, 0)), dustVelocity);
+    }
+
+    // 40% probability for additional weapons/armor loot drop
     const rand = Math.random();
     if (rand > 0.40) return;
 
@@ -93,9 +128,6 @@ export class TargetManager {
       const weapons = ['weapon_pistol', 'weapon_shotgun', 'weapon_rifle', 'weapon_sniper'];
       subType = weapons[Math.floor(Math.random() * weapons.length)];
     }
-
-    const inv = this.inventoryManager || (window.gameInstance ? window.gameInstance.inventory : null);
-    if (!inv) return;
 
     const itemData = inv.generateRandomItem(subType, rarity);
     if (!itemData) return;
@@ -174,7 +206,8 @@ export class TargetManager {
     }
 
     // Maintain continuous zone population via Tactical Cluster Spawner (>25m buffer from player)
-    if (this.targets.length < TARGET_ZONE_POPULATION) {
+    const allowSpawn = gameState ? gameState.allowAIRespawn : true;
+    if (allowSpawn && this.targets.length < TARGET_ZONE_POPULATION) {
       const needed = TARGET_ZONE_POPULATION - this.targets.length;
       const squadCount = Math.min(needed, 4);
       const clusterBots = ClusterSpawner.spawnCluster(EnemyFactory, this.scene, this.worldOctree, playerPosition, this.targets, squadCount);
@@ -307,29 +340,44 @@ export class TargetManager {
               const getLiveTarget = () => window.gameInstance?.player?.camera?.position || playerPosition;
 
               const muzzleOrigin = getLiveOrigin();
+              const targetPoint = getLiveTarget();
+
+              // Fix 2: Line-of-Sight Occlusion Check against World Octree
+              if (!hasLineOfSight(muzzleOrigin, targetPoint, this.worldOctree)) {
+                // Occluded by wall/terrain — pause attack and strafe around obstacle
+                b.attackCooldown = 0.5;
+                continue;
+              }
+
               if (bulletMgr.triggerSpark) {
                 bulletMgr.triggerSpark(muzzleOrigin, 0xffb703);
               }
 
               if (b.weaponType === 'PISTOL') {
                 b.attackCooldown = 1.2;
-                bulletMgr.spawnEnemyProjectile(muzzleOrigin, getLiveTarget(), 12, 50);
+                bulletMgr.spawnEnemyProjectile(muzzleOrigin, targetPoint, 12, 50);
                 sound.playImpact();
               } else {
                 b.attackCooldown = 2.0;
-                bulletMgr.spawnEnemyProjectile(muzzleOrigin, getLiveTarget(), 10, 60);
+                bulletMgr.spawnEnemyProjectile(muzzleOrigin, targetPoint, 10, 60);
                 setTimeout(() => {
                   if (!b.isDestroyed) {
                     const nextOrigin = getLiveOrigin();
-                    if (bulletMgr.triggerSpark) bulletMgr.triggerSpark(nextOrigin, 0xffb703);
-                    bulletMgr.spawnEnemyProjectile(nextOrigin, getLiveTarget(), 10, 60);
+                    const nextTarget = getLiveTarget();
+                    if (hasLineOfSight(nextOrigin, nextTarget, this.worldOctree)) {
+                      if (bulletMgr.triggerSpark) bulletMgr.triggerSpark(nextOrigin, 0xffb703);
+                      bulletMgr.spawnEnemyProjectile(nextOrigin, nextTarget, 10, 60);
+                    }
                   }
                 }, 100);
                 setTimeout(() => {
                   if (!b.isDestroyed) {
                     const nextOrigin = getLiveOrigin();
-                    if (bulletMgr.triggerSpark) bulletMgr.triggerSpark(nextOrigin, 0xffb703);
-                    bulletMgr.spawnEnemyProjectile(nextOrigin, getLiveTarget(), 10, 60);
+                    const nextTarget = getLiveTarget();
+                    if (hasLineOfSight(nextOrigin, nextTarget, this.worldOctree)) {
+                      if (bulletMgr.triggerSpark) bulletMgr.triggerSpark(nextOrigin, 0xffb703);
+                      bulletMgr.spawnEnemyProjectile(nextOrigin, nextTarget, 10, 60);
+                    }
                   }
                 }, 200);
                 sound.playImpact();

@@ -12,13 +12,13 @@ const _tempDir = new THREE.Vector3();
 const _axisY = new THREE.Vector3(0, 1, 0);
 
 const SPAWN_POINTS = [
-  new THREE.Vector3(0, 3.5, 0),     // Center platform top (elevated tactical point)
-  new THREE.Vector3(0, 3.7, -40),   // North Overlook top
-  new THREE.Vector3(0, 3.7, 40),    // South Overlook top
-  new THREE.Vector3(-30, 0.5, -30), // NW courtyard
-  new THREE.Vector3(30, 0.5, -30),  // NE courtyard
-  new THREE.Vector3(-30, 0.5, 30),  // SW courtyard
-  new THREE.Vector3(30, 0.5, 30),   // SE courtyard
+  new THREE.Vector3(0, 5.0, 0),     // Center platform top (elevated tactical point)
+  //new THREE.Vector3(0, 3.7, -40),   // North Overlook top
+  //new THREE.Vector3(0, 3.7, 40),    // South Overlook top
+  // new THREE.Vector3(-30, 0.5, -30), // NW courtyard
+  // new THREE.Vector3(30, 0.5, -30),  // NE courtyard
+  // new THREE.Vector3(-30, 0.5, 30),  // SW courtyard
+  // new THREE.Vector3(30, 0.5, 30),   // SE courtyard
   new THREE.Vector3(0, 0.5, 55),    // South perimeter
   new THREE.Vector3(-55, 0.5, 0),   // West perimeter
   new THREE.Vector3(55, 0.5, 0),    // East perimeter
@@ -93,10 +93,12 @@ export class Player {
     this.isClimbingLadder = false;
     this.activeLadder = null;
 
-    // Health state
+    // Health & Spectator state
     this.maxHp = 100;
     this.hp = 100;
     this.isDead = false;
+    this.isSpectator = false;
+    this.isInvulnerable = false;
     this.damageReduction = 0.0;
     this.speedMultiplier = 1.0;
     this.jumpMultiplier = 1.0;
@@ -104,6 +106,25 @@ export class Player {
     // Movement distance for bobbing
     this.moveDistance = 0;
     this.screenShakeIntensity = 0.0;
+  }
+
+  enableSpectatorMode() {
+    this.isSpectator = true;
+    this.isDead = true;
+    this.isInvulnerable = true;
+    this.velocity.set(0, 0, 0);
+    if (this.characterRig && this.characterRig.group) {
+      this.characterRig.group.visible = false;
+    }
+  }
+
+  disableSpectatorMode() {
+    this.isSpectator = false;
+    this.isDead = false;
+    this.isInvulnerable = false;
+    if (this.characterRig && this.characterRig.group) {
+      this.characterRig.group.visible = true;
+    }
   }
 
   cancelSprint(controls) {
@@ -115,17 +136,18 @@ export class Player {
   }
 
   update(deltaTime, controls) {
+    if (!controls) return;
     if (!controls.isLocked) return;
 
-    // 1. Mouse Look (Pitch & Yaw) & MMB Free-Look Decoupling
+    // Handle mouse look / angles
     const mouseDelta = controls.getAndResetMouseDelta();
     const sensitivity = (controls.sensitivity || 0.0022);
 
     this.yaw -= mouseDelta.x * sensitivity;
     this.pitch -= mouseDelta.y * sensitivity;
 
-    const maxPitch = Math.PI / 2 - 0.01;
-    this.pitch = Math.max(-maxPitch, Math.min(maxPitch, this.pitch));
+    // Clamp pitch between -85 deg and +85 deg
+    this.pitch = THREE.MathUtils.clamp(this.pitch, -Math.PI / 2.1, Math.PI / 2.1);
 
     if (controls.isFreeLooking) {
       // Clamp camera yaw relative to bodyYaw within [-110 deg, +110 deg]
@@ -144,6 +166,33 @@ export class Player {
     this.camera.rotation.y = this.yaw;
     this.camera.rotation.x = this.pitch;
 
+    // --- SPECTATOR NOCLIP FLYCAM ---
+    if (this.isSpectator) {
+      const flySpeed = controls.keyState.sprint ? 36.0 : 18.0;
+      const flyDir = new THREE.Vector3();
+
+      if (controls.keyState.forward) flyDir.z -= 1;
+      if (controls.keyState.backward) flyDir.z += 1;
+      if (controls.keyState.left) flyDir.x -= 1;
+      if (controls.keyState.right) flyDir.x += 1;
+
+      if (flyDir.lengthSq() > 0) {
+        flyDir.normalize();
+        flyDir.applyEuler(new THREE.Euler(this.pitch, this.yaw, 0, 'YXZ'));
+        this.camera.position.addScaledVector(flyDir, flySpeed * deltaTime);
+      }
+
+      if (controls.keyState.jump) {
+        this.camera.position.y += flySpeed * deltaTime;
+      }
+      if (controls.keyState.crouch) {
+        this.camera.position.y -= flySpeed * deltaTime;
+      }
+
+      this.position.copy(this.camera.position);
+      return;
+    }
+
     // --- ZIPLINE MOVEMENT PHYSICS ---
     if (this.isZiplining && this.activeZipline) {
       if (this.ziplineAttachTimer > 0) {
@@ -158,7 +207,7 @@ export class Player {
 
       // Check endpoint reached or jump off request (Space / F after 0.35s attach timer)
       const reachedEnd = (this.ziplineDirection === 1 && this.ziplineProgress >= 1.0) ||
-                         (this.ziplineDirection === -1 && this.ziplineProgress <= 0.0);
+        (this.ziplineDirection === -1 && this.ziplineProgress <= 0.0);
 
       const manualDetach = controls.keyState.jump || (controls.keyState.interact && this.ziplineAttachTimer <= 0);
 
@@ -269,7 +318,7 @@ export class Player {
     if (wantsCrouch && (sprintInputHeld || this.isSprinting) && this.onGround && !this.isSliding && currentHorizontalSpeed >= 12.0 && this.slideCooldownTimer <= 0) {
       this.isSliding = true;
       this.slideTimer = 0.8; // 0.8s max slide duration
-      
+
       _tempDir.set(0, 0, -1).applyAxisAngle(_axisY, this.yaw);
       this.velocity.addScaledVector(_tempDir, 12.0); // +12 m/s kinetic slide kick impulse
       sound.playJump();
@@ -522,7 +571,7 @@ export class Player {
   }
 
   takeDamage(amount, hitY = null, attackerId = null, attackerName = null) {
-    if (this.isDead) return;
+    if (this.isDead || this.isSpectator || this.isInvulnerable) return;
     const sanitizedAmount = Math.max(0, Math.min(Number(amount) || 0, 200));
     if (sanitizedAmount <= 0) return;
 

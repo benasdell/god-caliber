@@ -295,6 +295,14 @@ export class BulletManager {
         window.gameInstance.playerDamageDealt = (window.gameInstance.playerDamageDealt || 0) + finalDmg;
       }
 
+      // Broadcast enemy damage over WebRTC
+      if (netManager && netManager.isConnected && actualTargetManager) {
+        const botIndex = actualTargetManager.targets.indexOf(hitBot);
+        if (botIndex !== -1) {
+          netManager.sendEnemyDamage(botIndex, finalDmg, isHeadshot);
+        }
+      }
+
       // Check destruction
       if (hitBot.hp <= 0) {
         hitBot.isDestroyed = true;

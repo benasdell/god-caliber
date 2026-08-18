@@ -35,8 +35,10 @@ export class GameStateManager {
       COMBAT_STAGE_1: 45,  // Circle stage 1→2
       COMBAT_STAGE_2: 40,  // Circle stage 2→3
       COMBAT_STAGE_3: 30,  // Circle stage 3→4 (final)
-      FINAL_CIRCLE: 60,    // Survive 60s in final circle to win (solo)
+      FINAL_CIRCLE: 60,    // Final circle duration
     };
+
+    this.allowAIRespawn = true;
   }
 
   startMatch() {
@@ -45,6 +47,7 @@ export class GameStateManager {
     this.matchTime = 0;
     this.circleStage = 0;
     this.isMatchActive = true;
+    this.allowAIRespawn = true;
     this.resetStats();
   }
 
@@ -72,6 +75,7 @@ export class GameStateManager {
         if (this.circleStage >= 4) {
           this.phase = MATCH_PHASES.FINAL_CIRCLE;
           this.phaseTimer = this.PHASE_DURATIONS.FINAL_CIRCLE;
+          this.allowAIRespawn = false; // Lock AI respawns in final circle
         } else if (this.circleStage === 2) {
           this.phaseTimer = this.PHASE_DURATIONS.COMBAT_STAGE_2;
         } else if (this.circleStage === 3) {
@@ -84,6 +88,23 @@ export class GameStateManager {
         this.triggerVictory();
       }
     }
+  }
+
+  checkVictoryCondition(aliveHumanCount, activeAICount) {
+    if (!this.isMatchActive) return null;
+    if (this.phase !== MATCH_PHASES.COMBAT_PHASE && this.phase !== MATCH_PHASES.FINAL_CIRCLE) return null;
+
+    if (aliveHumanCount === 0) {
+      this.triggerDefeat();
+      return 'DEFEAT';
+    }
+
+    if (this.phase === MATCH_PHASES.FINAL_CIRCLE && activeAICount === 0 && aliveHumanCount === 1) {
+      this.triggerVictory();
+      return 'VICTORY';
+    }
+
+    return null;
   }
 
   triggerVictory() {

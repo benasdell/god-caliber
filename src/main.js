@@ -106,6 +106,93 @@ class Game {
             if (attackerPeer) attackerPeer.kills = (attackerPeer.kills || 0) + 1;
           }
           break;
+        case 'world_init':
+          if (Array.isArray(event.items) && this.worldItemManager) {
+            this.worldItemManager.groundItems.forEach(item => this.sceneManager.scene.remove(item.meshGroup));
+            this.worldItemManager.groundItems = [];
+            event.items.forEach(itemInfo => {
+              if (itemInfo.itemData && Array.isArray(itemInfo.pos)) {
+                const p = new THREE.Vector3(itemInfo.pos[0], itemInfo.pos[1], itemInfo.pos[2]);
+                this.worldItemManager.spawnItem(itemInfo.itemData, p);
+              }
+            });
+          }
+          if (this.gameState) {
+            if (event.phase) this.gameState.phase = event.phase;
+            if (event.circleStage !== undefined) this.gameState.circleStage = event.circleStage;
+          }
+          break;
+        case 'item_pickup':
+          if (event.itemId && this.worldItemManager) {
+            const idx = this.worldItemManager.groundItems.findIndex(g => g.itemData?.id === event.itemId);
+            if (idx !== -1) {
+              const groundItem = this.worldItemManager.groundItems[idx];
+              this.sceneManager.scene.remove(groundItem.meshGroup);
+              this.worldItemManager.groundItems.splice(idx, 1);
+            }
+          }
+          break;
+        case 'item_drop':
+        case 'item_spawned':
+          if (event.itemData && Array.isArray(event.pos) && this.worldItemManager) {
+            const p = new THREE.Vector3(event.pos[0], event.pos[1], event.pos[2]);
+            this.worldItemManager.spawnItem(event.itemData, p);
+          }
+          break;
+        case 'container_loot':
+          if (Array.isArray(event.pos) && this.worldItemManager && this.inventory) {
+            const p = new THREE.Vector3(event.pos[0], event.pos[1], event.pos[2]);
+            const bases = ['weapon_ar15', 'weapon_shotgun', 'weapon_sniper', 'item_helmet', 'item_vest', 'item_recipe', 'item_respawn_token', 'item_dust_vial'];
+            for (let i = 0; i < 4; i++) {
+              const b = bases[Math.floor(Math.random() * bases.length)];
+              const item = this.inventory.generateRandomItem(b, 'rare');
+              if (item) {
+                const kick = new THREE.Vector3((Math.random() - 0.5) * 5, 3 + Math.random() * 2, (Math.random() - 0.5) * 5);
+                this.worldItemManager.spawnItem(item, p.clone().add(new THREE.Vector3(0, 0.4, 0)), kick);
+              }
+            }
+          }
+          break;
+        case 'enemy_damage':
+          if (this.targetManager && typeof event.enemyIndex === 'number') {
+            const target = this.targetManager.targets[event.enemyIndex];
+            if (target && !target.isDestroyed) {
+              target.hp -= (event.damage || 35);
+              if (target.hp <= 0) {
+                target.isDestroyed = true;
+                target.group.visible = false;
+                this.targetManager.rollLootDrop(target.position);
+              }
+            }
+          }
+          break;
+        case 'enemy_sync':
+          if (!this.network.isHost && this.targetManager && Array.isArray(event.enemies)) {
+            for (const snap of event.enemies) {
+              let t = this.targetManager.targets[snap.idx];
+              if (!t && snap.pos) {
+                const pos = new THREE.Vector3(snap.pos[0], snap.pos[1], snap.pos[2]);
+                t = this.targetManager.createEnemyBot(pos, snap.idName, snap.type);
+              }
+              if (t && t.position && snap.pos) {
+                t.position.set(snap.pos[0], snap.pos[1], snap.pos[2]);
+                t.group.position.copy(t.position);
+                t.group.rotation.y = snap.rotY || 0;
+                t.hp = snap.hp;
+              }
+            }
+          }
+          break;
+        case 'spectator_state':
+          if (event.peerId && this.network.peerPlayers.has(event.peerId)) {
+            const peer = this.network.peerPlayers.get(event.peerId);
+            if (peer) {
+              peer.isSpectator = Boolean(event.isSpectator);
+              peer.isDead = true;
+              if (peer.group) peer.group.visible = false;
+            }
+          }
+          break;
         case 'peer-joined':
           if (this.ui) {
             this.ui.addKillFeed(`👤 PLAYER JOINED: ${event.name || 'Peer'}`);
@@ -366,6 +453,10 @@ class Game {
     kick.y = 3.0;
 
     this.worldItemManager.spawnItem(itemData, pos, kick);
+
+    if (this.network && this.network.isConnected) {
+      this.network.sendItemDrop(itemData, pos);
+    }
   }
 
   handleFiring() {
@@ -530,6 +621,16 @@ class Game {
             const item = closestLoot.itemData;
             if (item.isChest) {
               this.openChest(closestLoot);
+            } else if (item.type === 'dust' || item.baseId === 'item_dust_vial') {
+              const amount = item.dustAmount || 10;
+              this.inventory.recycledDust.epic += amount;
+              this.worldItemManager.removeItem(closestLoot);
+              this.ui.addKillFeed(`🧪 COLLECTED +${amount} CRAFTING DUST!`);
+              sound.playReload();
+              this.inventoryUI.renderItems();
+              if (this.network && this.network.isConnected) {
+                this.network.sendItemPickup(item.id);
+              }
             } else {
               // Auto-Equip Check: If designated slot is unequipped, auto-equip directly!
               const targetSlot = this.inventoryUI.getEquipmentSlotForItem(item);
@@ -540,6 +641,9 @@ class Game {
                 sound.playReload();
                 this.inventoryUI.applyEquipmentStats();
                 this.inventoryUI.renderItems();
+                if (this.network && this.network.isConnected) {
+                  this.network.sendItemPickup(item.id);
+                }
               } else {
                 const space = this.inventory.findEmptySpace(item);
                 if (space) {
@@ -549,6 +653,9 @@ class Game {
                   sound.playReload();
                   this.inventoryUI.applyEquipmentStats();
                   this.inventoryUI.renderItems();
+                  if (this.network && this.network.isConnected) {
+                    this.network.sendItemPickup(item.id);
+                  }
                 } else {
                   this.ui.addKillFeed("⚠️ INVENTORY GRID STORAGE FULL!");
                   sound.playEmpty();
@@ -643,6 +750,10 @@ class Game {
     const pos = chest.meshGroup.position.clone();
     this.worldItemManager.removeItem(chest);
 
+    if (this.network && this.network.isConnected) {
+      this.network.sendContainerLoot(0, pos);
+    }
+
     // Spawn 4 random items that burst into the air
     for (let i = 0; i < 4; i++) {
       const recipeRoll = Math.random();
@@ -677,6 +788,29 @@ class Game {
     }
   }
 
+  spawnDeathLootPile(position) {
+    if (!this.worldItemManager || !this.inventory) return;
+
+    // Scatter equipped gear
+    const slots = ['head', 'torso', 'legs', 'gloves', 'primary', 'secondary'];
+    for (const slot of slots) {
+      const item = this.inventory.equipment[slot];
+      if (item) {
+        const vel = new THREE.Vector3((Math.random() - 0.5) * 6, 3 + Math.random() * 2, (Math.random() - 0.5) * 6);
+        this.worldItemManager.spawnItem(item, position.clone().add(new THREE.Vector3(0, 0.5, 0)), vel);
+        this.inventory.equipment[slot] = null;
+      }
+    }
+
+    // Scatter bag items
+    const bagItems = [...this.inventory.items];
+    for (const item of bagItems) {
+      const vel = new THREE.Vector3((Math.random() - 0.5) * 6, 3 + Math.random() * 2, (Math.random() - 0.5) * 6);
+      this.worldItemManager.spawnItem(item, position.clone().add(new THREE.Vector3(0, 0.5, 0)), vel);
+      this.inventory.removeItem(item);
+    }
+  }
+
   animate() {
     requestAnimationFrame(() => this.animate());
 
@@ -708,7 +842,7 @@ class Game {
       }
 
       // Check player death & Respawn Token
-      if (this.player.isDead) {
+      if (this.player.isDead && !this.player.isSpectator) {
         if (this.inventory.hasRespawnToken()) {
           this.inventory.consumeRespawnToken();
           this.gameState.stats.respawnTokensUsed++;
@@ -716,16 +850,37 @@ class Game {
           this.player.hp = 50;
           this.ui.addKillFeed("📿 RESPAWN TOKEN CONSUMED! 50% HP RESTORED.");
         } else {
-          this.gameState.triggerDefeat();
-          this.ui.showDefeatOverlay(this.gameState.stats);
-          if (this.controls.isLocked) {
-            document.exitPointerLock();
+          // Drop all equipment and inventory into physical ground scatter
+          this.spawnDeathLootPile(this.player.position);
+          this.player.enableSpectatorMode();
+          if (this.weapon) this.weapon.setActive(false);
+          this.ui.addKillFeed("💀 OPERATOR ELIMINATED! ENTERED SPECTATOR FLYCAM.");
+
+          // Broadcast spectator state to peers
+          if (this.network?.isConnected) {
+            this.network.broadcast({
+              type: 'spectator_state',
+              peerId: this.network.peer?.id || 'local',
+              isSpectator: true
+            });
           }
         }
       }
 
-      // Check Victory Condition
-      if (this.gameState.phase === MATCH_PHASES.VICTORY) {
+      // Check Match Elimination / Victory Evaluation
+      const isMultiplayer = this.network && this.network.isConnected;
+      const alivePeers = isMultiplayer ? Array.from(this.network.peerPlayers.values()).filter(p => !p.isDead && !p.isSpectator).length : 0;
+      const localAlive = !this.player.isDead && !this.player.isSpectator;
+      const totalAliveHumans = (localAlive ? 1 : 0) + alivePeers;
+      const activeEnemiesCount = this.targetManager ? this.targetManager.targets.filter(t => !t.isDestroyed).length : 0;
+
+      const victoryDefeatResult = this.gameState.checkVictoryCondition(totalAliveHumans, activeEnemiesCount);
+      if (victoryDefeatResult === 'DEFEAT' || this.gameState.phase === MATCH_PHASES.DEFEAT) {
+        this.ui.showDefeatOverlay(this.gameState.stats);
+        if (this.controls.isLocked) {
+          document.exitPointerLock();
+        }
+      } else if (victoryDefeatResult === 'VICTORY' || this.gameState.phase === MATCH_PHASES.VICTORY) {
         this.ui.showVictoryOverlay(this.gameState.stats);
         if (this.controls.isLocked) {
           document.exitPointerLock();

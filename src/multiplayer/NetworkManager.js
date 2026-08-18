@@ -632,9 +632,16 @@ export class NetworkManager {
     }
     if (!packet || typeof packet !== 'object') return;
 
-    // --- SECURITY HARDENING (0.3.7 BASTION) ---
+    // --- SECURITY HARDENING (0.3.7 BASTION & 0.3.11 SENTRY) ---
     // 1. Packet Whitelist
-    const ALLOWED_TYPES = new Set(['state', 'hit', 'bullet_fire', 'kill', 'identify', 'phase', 'start_match', 'heartbeat', 'heartbeat-ack', 'error']);
+    const ALLOWED_TYPES = new Set([
+      'state', 'hit', 'bullet_fire', 'kill', 'identify', 'phase', 'start_match',
+      'heartbeat', 'heartbeat-ack', 'error',
+      'item_pickup', 'item_destroyed', 'item_drop', 'item_spawned',
+      'container_loot', 'container_state_sync',
+      'enemy_damage', 'enemy_health_update', 'enemy_died', 'enemy_sync',
+      'world_init', 'spectator_state', 'victory_state'
+    ]);
     if (!packet.type || !ALLOWED_TYPES.has(packet.type)) {
       console.warn(`[NetworkManager] Dropped unknown/unallowed packet type "${packet.type}" from peer ${senderPeerId}`);
       return;
@@ -709,6 +716,22 @@ export class NetworkManager {
         window.gameInstance.ui.renderConnectedPlayers();
       }
       if (this.isHost) {
+        // Send initial world state (active ground items & match phase) to newly connected peer
+        const worldItems = window.gameInstance?.worldItemManager?.groundItems?.map(g => ({
+          itemData: g.itemData,
+          pos: [g.meshGroup.position.x, g.meshGroup.position.y, g.meshGroup.position.z]
+        })) || [];
+        const conn = this.connections.get(senderPeerId);
+        if (conn && conn.open) {
+          try {
+            conn.send({
+              type: 'world_init',
+              items: worldItems,
+              phase: window.gameInstance?.gameState?.phase,
+              circleStage: window.gameInstance?.gameState?.circleStage
+            });
+          } catch (e) {}
+        }
         this.broadcast({ ...packet, sender: targetId }, senderPeerId);
       }
       return;
@@ -731,7 +754,7 @@ export class NetworkManager {
       return;
     }
 
-    // Route custom WebRTC events (start_match, phase, hit, etc.)
+    // Route custom WebRTC events (start_match, phase, hit, item sync, enemy sync, etc.)
     if (typeof this.onPeerEvent === 'function') {
       this.onPeerEvent(packet, senderPeerId);
     }
@@ -804,6 +827,72 @@ export class NetworkManager {
     console.log(`[NetworkManager] Host kicked peer: ${id}`);
   }
 
+  broadcastEnemyState() {
+    if (!this.isConnected || !this.isHost) return;
+    const targetMgr = window.gameInstance?.targetManager;
+    if (!targetMgr || !targetMgr.targets) return;
+
+    const enemySnapshots = [];
+    for (let i = 0; i < targetMgr.targets.length; i++) {
+      const t = targetMgr.targets[i];
+      if (t && !t.isDestroyed && t.position) {
+        enemySnapshots.push({
+          idx: i,
+          idName: t.idName,
+          type: t.type,
+          pos: [Number(t.position.x.toFixed(2)), Number(t.position.y.toFixed(2)), Number(t.position.z.toFixed(2))],
+          rotY: Number((t.group?.rotation?.y || 0).toFixed(2)),
+          hp: Math.ceil(t.hp)
+        });
+      }
+    }
+
+    if (enemySnapshots.length > 0) {
+      this.broadcast({
+        type: 'enemy_sync',
+        enemies: enemySnapshots
+      });
+    }
+  }
+
+  sendItemPickup(itemId, pickerId) {
+    if (!this.isConnected) return;
+    this.broadcast({
+      type: 'item_pickup',
+      itemId,
+      pickerId: pickerId || this.peer?.id || 'local'
+    });
+  }
+
+  sendItemDrop(itemData, position) {
+    if (!this.isConnected) return;
+    this.broadcast({
+      type: 'item_drop',
+      itemData,
+      pos: [position.x, position.y, position.z]
+    });
+  }
+
+  sendContainerLoot(chestIndex, position) {
+    if (!this.isConnected) return;
+    this.broadcast({
+      type: 'container_loot',
+      chestIndex,
+      pos: [position.x, position.y, position.z]
+    });
+  }
+
+  sendEnemyDamage(enemyIndex, damage, isHeadshot) {
+    if (!this.isConnected) return;
+    this.broadcast({
+      type: 'enemy_damage',
+      enemyIndex,
+      damage,
+      isHeadshot,
+      shooterId: this.peer?.id || 'local'
+    });
+  }
+
   update(deltaTime) {
     this.peerPlayers.forEach(peer => peer.update(deltaTime));
 
@@ -811,6 +900,9 @@ export class NetworkManager {
     if (this.broadcastTimer >= this.BROADCAST_INTERVAL) {
       this.broadcastTimer = 0;
       this.broadcastLocalState();
+      if (this.isHost) {
+        this.broadcastEnemyState();
+      }
     }
   }
 

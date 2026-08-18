@@ -74,6 +74,12 @@ export const TESTING_ARENA_CONFIG = {
     { x: 0, y: 0, z: 80, width: 22, height: 5.5, length: 16 },
     { x: -80, y: 0, z: 0, width: 16, height: 5.5, length: 22 },
     { x: 80, y: 0, z: 0, width: 16, height: 5.5, length: 22 },
+
+    // Mid-Rim Procedural Density Hubs (300m - 700m from center)
+    { x: 450, y: 0, z: 400, width: 24, height: 5.5, length: 24 },
+    { x: -450, y: 0, z: -350, width: 24, height: 5.5, length: 24 },
+    { x: -350, y: 0, z: 500, width: 24, height: 5.5, length: 24 },
+    { x: 500, y: 0, z: -400, width: 24, height: 5.5, length: 24 },
   ],
 
   // Two-level sniper towers with internal staircases
@@ -84,6 +90,12 @@ export const TESTING_ARENA_CONFIG = {
     { x: -45, y: 0, z: 45, width: 16, height: 8.5, length: 16 },
     { x: 45, y: 0, z: 45, width: 16, height: 8.5, length: 16 },
     { x: 0, y: 0, z: -120, width: 18, height: 9.0, length: 18 },
+
+    // Mid-Rim Watchtowers
+    { x: 470, y: 0, z: 380, width: 16, height: 9.0, length: 16 },
+    { x: -430, y: 0, z: -370, width: 16, height: 9.0, length: 16 },
+    { x: -370, y: 0, z: 480, width: 16, height: 9.0, length: 16 },
+    { x: 480, y: 0, z: -420, width: 16, height: 9.0, length: 16 },
   ],
 
   // Fortified concrete pillboxes / bunkers with firing slits
@@ -96,6 +108,12 @@ export const TESTING_ARENA_CONFIG = {
     { x: 90, y: 0, z: -90, width: 10, height: 3.5, length: 10 },
     { x: -90, y: 0, z: 90, width: 10, height: 3.5, length: 10 },
     { x: 90, y: 0, z: 90, width: 10, height: 3.5, length: 10 },
+
+    // Mid-Rim Bunkers
+    { x: 440, y: 0, z: 430, width: 10, height: 3.5, length: 10 },
+    { x: -470, y: 0, z: -330, width: 10, height: 3.5, length: 10 },
+    { x: -330, y: 0, z: 520, width: 10, height: 3.5, length: 10 },
+    { x: 520, y: 0, z: -380, width: 10, height: 3.5, length: 10 },
   ],
 
   // Elevated tactical platforms & loading docks
@@ -106,6 +124,12 @@ export const TESTING_ARENA_CONFIG = {
     { x: 35, y: 2.0, z: 10, width: 12, height: 4.0, length: 12 },
     { x: 0, y: 4.5, z: -60, width: 16, height: 5.0, length: 16 },
     { x: 0, y: 4.5, z: 60, width: 16, height: 5.0, length: 16 },
+
+    // Mid-Rim Platforms
+    { x: 450, y: 3.0, z: 415, width: 14, height: 4.5, length: 14 },
+    { x: -450, y: 3.0, z: -365, width: 14, height: 4.5, length: 14 },
+    { x: -350, y: 3.0, z: 485, width: 14, height: 4.5, length: 14 },
+    { x: 500, y: 3.0, z: -415, width: 14, height: 4.5, length: 14 },
   ],
 
   // Tactical barriers, concrete cover walls, and shipping containers
@@ -122,6 +146,16 @@ export const TESTING_ARENA_CONFIG = {
     { x: 70, y: 1.5, z: -30, width: 10, height: 3.0, length: 4.0, fullCover: true },
     { x: -70, y: 1.5, z: 30, width: 10, height: 3.0, length: 4.0, fullCover: true },
     { x: 70, y: 1.5, z: 30, width: 10, height: 3.0, length: 4.0, fullCover: true },
+
+    // Mid-Rim Cover Nodes
+    { x: 435, y: 1.2, z: 390, width: 8, height: 2.4, length: 1.0, fullCover: true },
+    { x: 465, y: 1.2, z: 410, width: 8, height: 2.4, length: 1.0, fullCover: true },
+    { x: -465, y: 1.2, z: -340, width: 8, height: 2.4, length: 1.0, fullCover: true },
+    { x: -435, y: 1.2, z: -360, width: 8, height: 2.4, length: 1.0, fullCover: true },
+    { x: -365, y: 1.2, z: 510, width: 8, height: 2.4, length: 1.0, fullCover: true },
+    { x: -335, y: 1.2, z: 490, width: 8, height: 2.4, length: 1.0, fullCover: true },
+    { x: 485, y: 1.2, z: -390, width: 8, height: 2.4, length: 1.0, fullCover: true },
+    { x: 515, y: 1.2, z: -410, width: 8, height: 2.4, length: 1.0, fullCover: true },
   ],
 
   // Triangular access ramps
@@ -130,6 +164,12 @@ export const TESTING_ARENA_CONFIG = {
     { x: 25, y: 0, z: -18, width: 4, height: 4.5, length: 8, rotationY: 0 },
     { x: -25, y: 0, z: 18, width: 4, height: 4.5, length: 8, rotationY: Math.PI },
     { x: 25, y: 0, z: 18, width: 4, height: 4.5, length: 8, rotationY: Math.PI },
+
+    // Mid-Rim Ramps
+    { x: 450, y: 0, z: 425, width: 5, height: 5.5, length: 10, rotationY: 0 },
+    { x: -450, y: 0, z: -375, width: 5, height: 5.5, length: 10, rotationY: Math.PI },
+    { x: -350, y: 0, z: 475, width: 5, height: 5.5, length: 10, rotationY: 0 },
+    { x: 500, y: 0, z: -425, width: 5, height: 5.5, length: 10, rotationY: Math.PI },
   ],
 
   // Vertical climbing ladders

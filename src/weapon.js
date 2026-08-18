@@ -117,9 +117,17 @@ export class Weapon {
     this.currentWeaponType = 'weapon_ar15';
     this.currentBlueprint = WEAPON_BLUEPRINTS.weapon_ar15;
 
-    // Scoped state
+    // Scoped / Optic state
     this.isScoped = false;
     this.scopeProgress = 0.0;
+    this.optic = {
+      type: 'red_dot',
+      equipped: true,
+      reticleMaterial: null,
+      reticleMesh: null,
+      adsFOV: 58,
+      hipFOV: 75
+    };
 
     // Initialize with default AR-15
     this.setWeaponType('weapon_ar15');

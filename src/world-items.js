@@ -51,6 +51,14 @@ export class WorldItemManager {
       roughness: 0.9,
     });
 
+    this.dustMat = new THREE.MeshStandardMaterial({
+      color: 0xd946ef,
+      emissive: 0xd946ef,
+      emissiveIntensity: 3.5,
+      metalness: 0.1,
+      roughness: 0.2,
+    });
+
     // --- SHARED GEOMETRIES ---
     this.geo_receiver = new THREE.BoxGeometry(0.1, 0.15, 0.4);
     this.geo_barrel = new THREE.CylinderGeometry(0.02, 0.02, 0.5);
@@ -277,6 +285,15 @@ export class WorldItemManager {
       const gloveR = new THREE.Mesh(this.geo_glove, this.polymerMat);
       gloveR.position.set(0.08, 0.02, 0);
       addPart(gloveR);
+
+    } else if (itemData.type === 'dust' || itemData.baseId === 'item_dust_vial') {
+      const vial = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.22, 12), this.dustMat);
+      vial.position.set(0, 0.12, 0);
+      addPart(vial);
+
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.05, 12), this.goldMat);
+      cap.position.set(0, 0.24, 0);
+      addPart(cap);
     }
   }
 

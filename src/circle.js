@@ -152,16 +152,17 @@ export class CircleManager {
     // Update 3D mesh geometry scale/position
     this.rebuildMesh();
 
-    // Check if player is outside circle
+    // Check if player is outside circle (strictly on 2D horizontal XZ plane, ignoring elevation Y)
     let damage = 0;
     let isOutside = false;
     
     if (playerPosition) {
       const dx = playerPosition.x - this.centerX;
       const dz = playerPosition.z - this.centerZ;
-      const distFromCenter = Math.sqrt(dx * dx + dz * dz);
+      const horizontalDistanceSq = dx * dx + dz * dz;
+      const radiusSq = this.currentRadius * this.currentRadius;
       
-      if (distFromCenter > this.currentRadius) {
+      if (horizontalDistanceSq > radiusSq) {
         isOutside = true;
         this.damageAccumulator += deltaTime;
         if (this.damageAccumulator >= 0.5) {
@@ -177,7 +178,7 @@ export class CircleManager {
   }
 
   rebuildMesh() {
-    const scale = this.currentRadius / 450; // 450 = original geometry radius
+    const scale = this.currentRadius / 500; // 500 = base geometry radius
     this.wallMesh.scale.set(scale, 1, scale);
     this.wallMesh.position.set(this.centerX, 12.5, this.centerZ);
 
@@ -186,8 +187,8 @@ export class CircleManager {
   }
 
   reset() {
-    this.currentRadius = 450;
-    this.targetRadius = 450;
+    this.currentRadius = 500;
+    this.targetRadius = 500;
     this.centerX = 0;
     this.centerZ = 0;
     this.targetCenterX = 0;

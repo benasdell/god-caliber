@@ -892,6 +892,7 @@ export class EnemyFactory {
     return {
       idName: idName,
       type: type,
+      difficultyTier: config.difficultyTier || (type === 'GOLIATH' ? 'Elite' : 'Minion'),
       weaponType: weaponType,
       config: config,
       group: group,

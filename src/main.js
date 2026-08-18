@@ -161,7 +161,8 @@ class Game {
               if (target.hp <= 0) {
                 target.isDestroyed = true;
                 target.group.visible = false;
-                this.targetManager.rollLootDrop(target.position);
+                const tier = target.difficultyTier || (target.type === 'GOLIATH' ? 'Elite' : 'Minion');
+                this.targetManager.rollLootDrop(target.position, tier);
               }
             }
           }
@@ -341,6 +342,9 @@ class Game {
     this._lastPhase = this.gameState.phase;
     this._lastCircleStageBroadcast = this.gameState.circleStage;
     this.player.reset();
+    this.player.disableSpectatorMode();
+    if (this.weapon) this.weapon.setActive(true);
+    this.ui.setSpectatorHUD(false);
     this.ui.hideResultOverlays();
 
     // Reset inventory items and spawn with P-57 Pistol + Combat Knife
@@ -460,7 +464,7 @@ class Game {
   }
 
   handleFiring() {
-    if (this.melee.isActive) return; // Cannot shoot while swinging knife
+    if (this.player.isDead || this.player.isSpectator || this.melee.isActive) return; // Cannot shoot while dead, spectating, or swinging knife
 
     const bp = this.weapon.currentBlueprint;
     if (!bp) return;
@@ -543,6 +547,13 @@ class Game {
   }
 
   handleInputs() {
+    if (this.player.isSpectator) {
+      if (this.inventoryUI && this.inventoryUI.isOpen) {
+        this.inventoryUI.close();
+      }
+      return;
+    }
+
     // 1. Inventory Toggle (Key E by default)
     if (this.controls.keyState.inventory) {
       if (!this.inventoryKeyWasPressed) {
@@ -622,12 +633,14 @@ class Game {
             if (item.isChest) {
               this.openChest(closestLoot);
             } else if (item.type === 'dust' || item.baseId === 'item_dust_vial') {
+              const rarity = (item.rarity || 'normal').toLowerCase();
               const amount = item.dustAmount || 10;
-              this.inventory.recycledDust.epic += amount;
+              this.inventory.addRecycledDust(rarity, amount);
               this.worldItemManager.removeItem(closestLoot);
-              this.ui.addKillFeed(`🧪 COLLECTED +${amount} CRAFTING DUST!`);
+              this.ui.addKillFeed(`🧪 COLLECTED +${amount} ${rarity.toUpperCase()} CRAFTING DUST!`);
               sound.playReload();
               this.inventoryUI.renderItems();
+              this.inventoryUI.updateDustDisplays();
               if (this.network && this.network.isConnected) {
                 this.network.sendItemPickup(item.id);
               }
@@ -688,6 +701,8 @@ class Game {
   }
 
   getActiveInteraction() {
+    if (this.player.isSpectator || this.player.isDead) return null;
+
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(new THREE.Vector2(0, 0), this.player.camera);
     raycaster.far = 3.5;
@@ -852,17 +867,37 @@ class Game {
         } else {
           // Drop all equipment and inventory into physical ground scatter
           this.spawnDeathLootPile(this.player.position);
-          this.player.enableSpectatorMode();
           if (this.weapon) this.weapon.setActive(false);
-          this.ui.addKillFeed("💀 OPERATOR ELIMINATED! ENTERED SPECTATOR FLYCAM.");
 
-          // Broadcast spectator state to peers
-          if (this.network?.isConnected) {
-            this.network.broadcast({
-              type: 'spectator_state',
-              peerId: this.network.peer?.id || 'local',
-              isSpectator: true
-            });
+          const isMultiplayerSession = Boolean(this.network && this.network.isConnected && this.network.peerPlayers && this.network.peerPlayers.size > 0);
+
+          if (isMultiplayerSession) {
+            this.player.enableSpectatorMode();
+            this.ui.setSpectatorHUD(true);
+            this.ui.addKillFeed("💀 OPERATOR ELIMINATED! ENTERED SPECTATOR FLYCAM.");
+
+            // Broadcast spectator state to peers
+            if (this.network?.isConnected) {
+              this.network.broadcast({
+                type: 'spectator_state',
+                peerId: this.network.peer?.id || 'local',
+                isSpectator: true
+              });
+            }
+          } else {
+            // In Singleplayer mode: Trigger Defeat Modal directly without turning into spectator flycam
+            this.player.isDead = true;
+            if (this.gameState.triggerDefeat) {
+              this.gameState.triggerDefeat();
+            } else {
+              this.gameState.endMatch(false);
+            }
+            this.ui.showDefeatOverlay(this.gameState.stats);
+            if (this.controls.isLocked) {
+              try {
+                document.exitPointerLock();
+              } catch (e) {}
+            }
           }
         }
       }
@@ -878,12 +913,16 @@ class Game {
       if (victoryDefeatResult === 'DEFEAT' || this.gameState.phase === MATCH_PHASES.DEFEAT) {
         this.ui.showDefeatOverlay(this.gameState.stats);
         if (this.controls.isLocked) {
-          document.exitPointerLock();
+          try {
+            document.exitPointerLock();
+          } catch (e) {}
         }
       } else if (victoryDefeatResult === 'VICTORY' || this.gameState.phase === MATCH_PHASES.VICTORY) {
         this.ui.showVictoryOverlay(this.gameState.stats);
         if (this.controls.isLocked) {
-          document.exitPointerLock();
+          try {
+            document.exitPointerLock();
+          } catch (e) {}
         }
       }
 
@@ -919,7 +958,9 @@ class Game {
       }
 
       // 1. Firing Input
-      this.handleFiring();
+      if (!this.player.isSpectator) {
+        this.handleFiring();
+      }
 
       // 2. Player Capsule Physics & Controls
       this.player.update(deltaTime, this.controls);
@@ -930,16 +971,18 @@ class Game {
 
       // Sync active weapon ammo state to equipped item
       const currentActiveItem = this.inventory.equipment[this.activeWeaponSlot];
-      if (currentActiveItem && this.weapon.isActive) {
+      if (currentActiveItem && this.weapon.isActive && !this.player.isSpectator) {
         currentActiveItem.currentAmmo = this.weapon.currentAmmo;
       }
 
       // 4. Quick Melee Knife Logic & Raycast Hit Check
-      const hitTarget = this.melee.checkHit(this.targetManager);
-      if (hitTarget) {
-        this.ui.triggerHitmarker();
+      if (!this.player.isSpectator) {
+        const hitTarget = this.melee.checkHit(this.targetManager);
+        if (hitTarget) {
+          this.ui.triggerHitmarker();
+        }
+        this.weapon.isMeleeActive = this.melee.isActive;
       }
-      this.weapon.isMeleeActive = this.melee.isActive;
 
       // 5. Update Network Manager (20Hz peer sync)
       if (this.network) {

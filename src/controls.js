@@ -207,6 +207,9 @@ export class Controls {
     // Mouse click
     document.addEventListener('mousedown', (event) => {
       if (!this.isLocked) return;
+      const isSpectator = Boolean(window.gameInstance?.player?.isSpectator);
+      if (isSpectator) return;
+
       if (event.button === 0) { // Left click
         this.mouseDown = true;
         this.shootRequested = true;
@@ -310,6 +313,19 @@ export class Controls {
     }
     if (code === this.bindings.crouch || code === 'ControlRight') this.keyState.crouch = isPressed;
     if (code === this.bindings.jump) this.keyState.jump = isPressed;
+
+    const isSpectator = Boolean(window.gameInstance?.player?.isSpectator);
+    if (isSpectator) {
+      this.keyState.reload = false;
+      this.keyState.melee = false;
+      this.keyState.inventory = false;
+      this.keyState.interact = false;
+      this.keyState.drop = false;
+      this.keyState.slot1 = false;
+      this.keyState.slot2 = false;
+      return;
+    }
+
     if (code === this.bindings.reload) this.keyState.reload = isPressed;
     if (code === this.bindings.melee) this.keyState.melee = isPressed;
     if (code === this.bindings.inventory) this.keyState.inventory = isPressed;

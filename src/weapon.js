@@ -500,6 +500,19 @@ export class Weapon {
   update(deltaTime, controls) {
     if (!this.isActive) {
       this.weaponGroup.visible = false;
+      if (this.scopeProgress > 0) {
+        this.scopeProgress = 0;
+        this.isScoped = false;
+        if (this.camera.fov !== 75) {
+          this.camera.fov = 75;
+          this.camera.updateProjectionMatrix();
+        }
+        const scopeUI = document.getElementById('sniper-scope');
+        if (scopeUI) {
+          scopeUI.classList.add('hidden');
+          scopeUI.style.opacity = 0;
+        }
+      }
       return;
     }
 

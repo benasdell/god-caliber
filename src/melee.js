@@ -155,6 +155,14 @@ export class MeleeWeapon {
               t.isDestroyed = true;
               t.respawnTimer = 5.0;
               t.group.visible = false;
+              const tier = t.difficultyTier || (t.type === 'GOLIATH' ? 'Elite' : 'Minion');
+              targetManager.rollLootDrop(t.position, tier);
+              if (window.gameInstance) {
+                window.gameInstance.playerKills = (window.gameInstance.playerKills || 0) + 1;
+                if (window.gameInstance.ui) {
+                  window.gameInstance.ui.addKillFeed(`🗡️ MELEE ELIMINATED ${t.idName} (${t.type})`);
+                }
+              }
             }
 
             return t;

@@ -307,8 +307,10 @@ export class BulletManager {
       if (hitBot.hp <= 0) {
         hitBot.isDestroyed = true;
         hitBot.respawnTimer = 5.0;
-        hitBot.group.visible = false;
-        if (actualTargetManager) actualTargetManager.rollLootDrop(hitBot.position);
+        if (actualTargetManager) {
+          const tier = hitBot.difficultyTier || (hitBot.type === 'GOLIATH' ? 'Elite' : 'Minion');
+          actualTargetManager.rollLootDrop(hitBot.position, tier);
+        }
 
         if (window.gameInstance) {
           window.gameInstance.playerKills = (window.gameInstance.playerKills || 0) + 1;

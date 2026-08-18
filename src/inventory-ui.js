@@ -191,6 +191,8 @@ export class InventoryUI {
           e.preventDefault();
           if (item.type === 'recipe') {
             this.learnRecipe(item);
+          } else if (item.type === 'dust' || item.baseId === 'item_dust_vial') {
+            this.consumeDustVial(item);
           } else {
             this.autoEquipItem(item);
           }
@@ -921,6 +923,20 @@ export class InventoryUI {
     }
     this.renderItems();
     this.renderCraftableGrid();
+  }
+
+  consumeDustVial(dustItem) {
+    if (!dustItem) return;
+    const rarity = (dustItem.rarity || 'normal').toLowerCase();
+    const amount = dustItem.dustAmount || 10;
+    this.inv.addRecycledDust(rarity, amount);
+    this.inv.removeItem(dustItem);
+    sound.playLootPickup();
+    if (window.gameInstance && window.gameInstance.ui) {
+      window.gameInstance.ui.addKillFeed(`🧪 CONSUMED +${amount} ${rarity.toUpperCase()} CRAFTING DUST!`);
+    }
+    this.renderItems();
+    this.updateDustDisplays();
   }
 
   toggleItemLock(item) {

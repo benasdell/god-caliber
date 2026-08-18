@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [Patch 0.3 Series — Multiplayer, Vision & System Overhauls](#-patch-03-series--multiplayer-vision--system-overhauls)
+  - [Sub-Patch 0.3.11b — Hotfix: Spawn Clearance, Crafting Dust CDF, Singleplayer Death Loop & Spectator Masking](#sub-patch-0311b--hotfix-spawn-clearance-crafting-dust-cdf-singleplayer-death-loop--spectator-masking)
   - [Sub-Patch 0.3.9e — Hotfix: Recipe Blueprint Unlocking & Dynamic Legendary Crafting](#sub-patch-039e--hotfix-recipe-blueprint-unlocking--dynamic-legendary-crafting)
   - [Sub-Patch 0.3.9d — Hotfix: Match Restart Gear Reset & Secondary Weapon Auto-Equip](#sub-patch-039d--hotfix-match-restart-gear-reset--secondary-weapon-auto-equip)
   - [Sub-Patch 0.3.9c — Hotfix: KeyF Interaction, KeyE Inventory Toggle, Scrollbar Elimination & Dynamic Grid](#sub-patch-039c--hotfix-keyf-interaction-keye-inventory-toggle-scrollbar-elimination--dynamic-grid)
@@ -32,6 +33,26 @@
 ---
 
 ## 🛡️ Patch 0.3 Series — Multiplayer, Vision & System Overhauls
+
+### Sub-Patch 0.3.11b — Hotfix: Spawn Clearance, Crafting Dust CDF, Singleplayer Death Loop & Spectator Masking
+*Release Date: August 2026*
+
+* **Spatial Clearance & Spawn Generation Refactor**:
+  - Implemented 50-iteration rejection sampling in `src/player.js` (`getSafeSpawnPoint()`) with a strict 15-meter safety buffer around structural AABBs (`getStructureExclusionZones()`).
+  - Downward Octree raycast floor clamping with slope angle validation ($\text{normal}.y \ge 0.866$, slope $\le 30^\circ$).
+  - Deterministic fallback to 16 pre-baked validated perimeter waypoints located in open terrain.
+* **Crafting Dust Rarity Pool Distribution & Monster Scaling**:
+  - Replaced hardcoded epic dust drops with a tiered Cumulative Distribution Function (CDF): Common (50.0%), Magic (28.0%), Rare (15.0%), Epic (5.5%), Legendary (1.5%).
+  - Dust stack sizes dynamically scale with monster classification: Minions (5–10), Elites (15–25), Pinnacle (35–50).
+  - Dynamic 3D loot beacon beam heights (2.5m–7.2m) and procedural glow materials matching dropped dust rarity.
+  - Enabled right-click instant consumption of crafting dust vials into the recycled dust inventory balance.
+* **Session Topology & Singleplayer Respawn Loop**:
+  - Decoupled singleplayer elimination from spectator mode: dying without a Respawn Token immediately displays the Defeat modal and halts pointer lock without entering spectator flycam.
+  - "PLAY AGAIN" directly re-arms the operator with starter loadout and safe coordinates.
+* **Spectator HUD Masking & Interaction Suppression**:
+  - When in spectator mode, the combat HUD (health, posture, ammo, reticle, sniper scope, interaction prompt) is masked, and the `#spectator-banner` HUD is displayed.
+  - Suppressed all firing, ADS, melee, weapon swapping, inventory toggle, and world object raycasts while spectating.
+  - Retained `Tab` key scoreboard access and noclip flycam movement.
 
 ### Sub-Patch 0.3.9e — Hotfix: Recipe Blueprint Unlocking & Dynamic Legendary Crafting
 *Release Date: August 2026*

@@ -4,25 +4,18 @@ import { sound } from './audio.js';
 import { EnemyFactory } from './enemies/EnemyFactory.js';
 import { CharacterRig } from './rigging/CharacterRig.js';
 import { ProceduralAnimator } from './animation/ProceduralAnimator.js';
+import { getStructureExclusionZones, VALIDATED_SPAWN_WAYPOINTS } from './terrain.js';
 
 // Preallocated static scratch vectors for zero-allocation physics loop
 const _tempVec1 = new THREE.Vector3();
 const _tempVec2 = new THREE.Vector3();
 const _tempDir = new THREE.Vector3();
 const _axisY = new THREE.Vector3(0, 1, 0);
+const _spawnRay = new THREE.Ray();
+const _spawnDown = new THREE.Vector3(0, -1, 0);
 
-const SPAWN_POINTS = [
-  new THREE.Vector3(0, 5.0, 0),     // Center platform top (elevated tactical point)
-  //new THREE.Vector3(0, 3.7, -40),   // North Overlook top
-  //new THREE.Vector3(0, 3.7, 40),    // South Overlook top
-  // new THREE.Vector3(-30, 0.5, -30), // NW courtyard
-  // new THREE.Vector3(30, 0.5, -30),  // NE courtyard
-  // new THREE.Vector3(-30, 0.5, 30),  // SW courtyard
-  // new THREE.Vector3(30, 0.5, 30),   // SE courtyard
-  new THREE.Vector3(0, 0.5, 55),    // South perimeter
-  new THREE.Vector3(-55, 0.5, 0),   // West perimeter
-  new THREE.Vector3(55, 0.5, 0),    // East perimeter
-];
+const SPAWN_POINTS = VALIDATED_SPAWN_WAYPOINTS;
+
 
 export class Player {
   constructor(camera, worldOctree) {
@@ -116,6 +109,14 @@ export class Player {
     if (this.characterRig && this.characterRig.group) {
       this.characterRig.group.visible = false;
     }
+    if (this.body1P) {
+      this.body1P.visible = false;
+    }
+    if (this.isZiplining) this.detachZipline(false);
+    if (this.isClimbingLadder) this.detachLadder();
+    this.isSprinting = false;
+    this.isSliding = false;
+    this.isCrouching = false;
   }
 
   disableSpectatorMode() {
@@ -124,6 +125,9 @@ export class Player {
     this.isInvulnerable = false;
     if (this.characterRig && this.characterRig.group) {
       this.characterRig.group.visible = true;
+    }
+    if (this.body1P) {
+      this.body1P.visible = true;
     }
   }
 
@@ -522,14 +526,54 @@ export class Player {
       activeEnemies = window.gameInstance.targetManager.targets.filter(b => !b.isDestroyed);
     }
 
-    if (activeEnemies.length === 0) {
-      return SPAWN_POINTS[Math.floor(Math.random() * SPAWN_POINTS.length)].clone();
+    const exclusionZones = getStructureExclusionZones(15.0);
+    const candidates = [];
+    const maxAttempts = 50;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // Sample uniformly in [-450, 450] x [-450, 450] (leaving 50m margin from 1000m map perimeter)
+      const sampleX = (Math.random() - 0.5) * 900;
+      const sampleZ = (Math.random() - 0.5) * 900;
+
+      // 1. Exclusion Zone Rejection Check
+      let inExclusion = false;
+      for (let z = 0; z < exclusionZones.length; z++) {
+        const zone = exclusionZones[z];
+        if (sampleX >= zone.minX && sampleX <= zone.maxX && sampleZ >= zone.minZ && sampleZ <= zone.maxZ) {
+          inExclusion = true;
+          break;
+        }
+      }
+      if (inExclusion) continue;
+
+      // 2. Downward raycast against worldOctree to find floor & check walkable slope
+      if (this.worldOctree) {
+        _spawnRay.origin.set(sampleX, 50, sampleZ);
+        _spawnRay.direction.copy(_spawnDown);
+        const hit = this.worldOctree.rayIntersect(_spawnRay);
+        if (hit && hit.point && hit.point.y >= -2.0) {
+          // Verify normal vector slope <= 30 deg (normal.y >= cos(30 deg) ≈ 0.866)
+          if (hit.normal && hit.normal.y >= 0.866) {
+            candidates.push(new THREE.Vector3(hit.point.x, hit.point.y + 0.05, hit.point.z));
+            if (candidates.length >= 8) break; // Gathered sufficient candidates
+          }
+        }
+      } else {
+        candidates.push(new THREE.Vector3(sampleX, 0.5, sampleZ));
+      }
     }
 
-    let bestSpawn = SPAWN_POINTS[0];
+    // Fallback to pre-baked validated perimeter waypoints if sampling failed
+    const searchPool = candidates.length > 0 ? candidates : VALIDATED_SPAWN_WAYPOINTS;
+
+    if (activeEnemies.length === 0) {
+      return searchPool[Math.floor(Math.random() * searchPool.length)].clone();
+    }
+
+    let bestSpawn = searchPool[0];
     let maxMinDist = -1;
 
-    for (const pt of SPAWN_POINTS) {
+    for (const pt of searchPool) {
       let minDistToEnemy = Infinity;
       for (const enemy of activeEnemies) {
         const d = pt.distanceTo(enemy.position);
@@ -546,8 +590,10 @@ export class Player {
   }
 
   reset() {
+    this.disableSpectatorMode();
     this.hp = this.maxHp;
     this.isDead = false;
+    this.isInvulnerable = false;
     this.velocity.set(0, 0, 0);
 
     const safeSpawn = this.getSafeSpawnPoint();

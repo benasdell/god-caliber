@@ -94,13 +94,28 @@ export class TargetManager {
     return wp;
   }
 
-  rollLootDrop(position) {
+  rollLootDrop(position, difficultyTier = 'Minion') {
     if (!this.worldItemManager) return;
     const inv = this.inventoryManager || (window.gameInstance ? window.gameInstance.inventory : null);
     if (!inv) return;
 
-    // Feature 3: Guaranteed 100% Monster Crafting Dust Drop
-    const dustVial = inv.generateRandomItem('item_dust_vial', 'epic');
+    // Feature: Guaranteed Monster Crafting Dust Drop with Tiered CDF Distribution
+    // Common: 50%, Magic: 28%, Rare: 15%, Epic: 5.5%, Legendary: 1.5%
+    const dustRoll = Math.random();
+    let dustRarity = 'normal';
+    if (dustRoll < 0.50) {
+      dustRarity = 'normal';
+    } else if (dustRoll < 0.78) {
+      dustRarity = 'magic';
+    } else if (dustRoll < 0.93) {
+      dustRarity = 'rare';
+    } else if (dustRoll < 0.985) {
+      dustRarity = 'epic';
+    } else {
+      dustRarity = 'legendary';
+    }
+
+    const dustVial = inv.generateRandomItem('item_dust_vial', dustRarity, difficultyTier);
     if (dustVial) {
       const dustVelocity = new THREE.Vector3(
         (Math.random() - 0.5) * 4.0,
@@ -125,8 +140,10 @@ export class TargetManager {
 
     let subType = null;
     if (cat === 'weapon') {
-      const weapons = ['weapon_pistol', 'weapon_shotgun', 'weapon_rifle', 'weapon_sniper'];
+      const weapons = ['weapon_pistol', 'weapon_shotgun', 'weapon_ar15', 'weapon_sniper'];
       subType = weapons[Math.floor(Math.random() * weapons.length)];
+    } else {
+      subType = `item_${cat}`;
     }
 
     const itemData = inv.generateRandomItem(subType, rarity);
@@ -161,7 +178,8 @@ export class TargetManager {
           t.respawnTimer = 5.0;
           t.group.visible = false;
 
-          this.rollLootDrop(t.position);
+          const tier = t.difficultyTier || (t.type === 'GOLIATH' ? 'Elite' : 'Minion');
+          this.rollLootDrop(t.position, tier);
 
           if (window.gameInstance) {
             window.gameInstance.playerKills = (window.gameInstance.playerKills || 0) + 1;

@@ -51,13 +51,44 @@ export class WorldItemManager {
       roughness: 0.9,
     });
 
-    this.dustMat = new THREE.MeshStandardMaterial({
-      color: 0xd946ef,
-      emissive: 0xd946ef,
-      emissiveIntensity: 3.5,
-      metalness: 0.1,
-      roughness: 0.2,
-    });
+    this.dustMaterials = {
+      normal: new THREE.MeshStandardMaterial({
+        color: 0x94a3b8,
+        emissive: 0x64748b,
+        emissiveIntensity: 1.5,
+        metalness: 0.1,
+        roughness: 0.2,
+      }),
+      magic: new THREE.MeshStandardMaterial({
+        color: 0x00f0ff,
+        emissive: 0x00f0ff,
+        emissiveIntensity: 2.5,
+        metalness: 0.1,
+        roughness: 0.2,
+      }),
+      rare: new THREE.MeshStandardMaterial({
+        color: 0xffe600,
+        emissive: 0xffe600,
+        emissiveIntensity: 3.2,
+        metalness: 0.1,
+        roughness: 0.2,
+      }),
+      epic: new THREE.MeshStandardMaterial({
+        color: 0xd946ef,
+        emissive: 0xd946ef,
+        emissiveIntensity: 4.0,
+        metalness: 0.1,
+        roughness: 0.2,
+      }),
+      legendary: new THREE.MeshStandardMaterial({
+        color: 0xf97316,
+        emissive: 0xf97316,
+        emissiveIntensity: 5.0,
+        metalness: 0.1,
+        roughness: 0.2,
+      }),
+    };
+    this.dustMat = this.dustMaterials.epic;
 
     // --- SHARED GEOMETRIES ---
     this.geo_receiver = new THREE.BoxGeometry(0.1, 0.15, 0.4);
@@ -115,27 +146,35 @@ export class WorldItemManager {
   }
 
   createLootBeam(itemData) {
-    const height = 4.35; // 3x standard player height (1.45m * 3)
+    const rarity = (itemData.rarity || 'normal').toLowerCase();
+    let height = 2.5;
+    let radius = 0.05;
 
-    // Base thickness depends on rarity
-    let radius = 0.06;
-    if (itemData.rarity === 'magic') radius = 0.09;
-    else if (itemData.rarity === 'rare') radius = 0.13;
-    else if (itemData.rarity === 'epic') radius = 0.18;
-    else if (itemData.rarity === 'legendary') radius = 0.24;
+    if (rarity === 'magic') {
+      height = 3.5;
+      radius = 0.08;
+    } else if (rarity === 'rare') {
+      height = 4.5;
+      radius = 0.12;
+    } else if (rarity === 'epic') {
+      height = 5.8;
+      radius = 0.18;
+    } else if (rarity === 'legendary') {
+      height = 7.2;
+      radius = 0.25;
+    }
 
     const beamGeo = new THREE.ConeGeometry(radius, height, 12, 1, true); // Open-ended cone for tapering cylinder
     const beamMat = new THREE.MeshBasicMaterial({
       color: new THREE.Color(itemData.borderColor || '#64748b'),
       transparent: true,
-      opacity: 0.25,
+      opacity: 0.35,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide
     });
 
     const mesh = new THREE.Mesh(beamGeo, beamMat);
-    // Align base of cone at ground: offset center of cone up by height / 2
     mesh.position.set(0, height / 2, 0);
     return mesh;
   }
@@ -287,7 +326,9 @@ export class WorldItemManager {
       addPart(gloveR);
 
     } else if (itemData.type === 'dust' || itemData.baseId === 'item_dust_vial') {
-      const vial = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.22, 12), this.dustMat);
+      const rarityKey = (itemData.rarity || 'normal').toLowerCase();
+      const vialMat = this.dustMaterials[rarityKey] || this.dustMaterials.normal;
+      const vial = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.22, 12), vialMat);
       vial.position.set(0, 0.12, 0);
       addPart(vial);
 

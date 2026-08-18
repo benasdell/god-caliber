@@ -160,4 +160,18 @@
 - **Guaranteed Monster Dust Economy Injections**:
   To maintain a consistent crafting loop across all playstyles, monsters must guarantee dropping a glowing Crafting Dust Vial item (5–15 dust units) upon elimination, in addition to standard equipment probability rolls.
 
+---
+
+## 14. Spatial Clearance, Crafting Dust CDF, Respawn Loop & Spectator Invariants (Hotfix 0.3.11b)
+
+- **AABB Structural Safety Buffer & Downward Raycast Clamping**:
+  Entity spawn calculations must never pick raw random coordinates without structural clearance checks. Rejection sampling with a 15-meter safety buffer around structural AABBs (`getStructureExclusionZones(15.0)`) combined with downward Octree raycast floor clamping and slope normal validation ($\text{normal}.y \ge 0.866$, slope $\le 30^\circ$) guarantees players never spawn inside enclosed walls or on vertical geometry. Deterministic perimeter waypoints serve as a validated fallback if sampling limits (50 iterations) are exhausted.
+- **Dust Rarity Cumulative Distribution Function (CDF) & Monster Scaling**:
+  Eliminate hardcoded single-tier dust drops. Drops must follow a balanced CDF: Common (50.0%), Magic (28.0%), Rare (15.0%), Epic (5.5%), Legendary (1.5%), with dust quantity scaled by monster tier: Minions (5–10), Elites (15–25), Pinnacle (35–50). Loot beacons and glowing materials must dynamically scale their height (2.5m–7.2m) and shader colors to visually match the rolled rarity tier.
+- **Singleplayer vs Multiplayer Death Flow Decoupling**:
+  In singleplayer sessions (no connected peers), player elimination must immediately trigger match conclusion and present the Defeat overlay, unlocking the mouse cursor. Spectator flycam mode is reserved strictly for multiplayer sessions where surviving squadmates remain active in the match. Match restarts (`startBRMatch()`) must explicitly disable spectator mode and re-arm the operator.
+- **Spectator State Hard Input & HUD Masking**:
+  When a player enters spectator mode, all combat HUD elements (`#hud-bottom`, `#hud-crosshair-canvas`, `#interaction-prompt`, `#sniper-scope`) must be masked, and the `#spectator-banner` HUD activated. Combat actions (primary/secondary fire, quick melee, ADS, weapon swaps, inventory opening, raycasting interactions) must be hard-suppressed at both the control and execution layers while preserving free flycam navigation and `Tab` scoreboard visibility.
+
+
 

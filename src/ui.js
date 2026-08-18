@@ -28,6 +28,8 @@ export class UIManager {
 
     this.hitmarkerEl = document.getElementById('hitmarker');
     this.killFeedEl = document.getElementById('kill-feed');
+    this.hudBottomEl = document.getElementById('hud-bottom');
+    this.spectatorBannerEl = document.getElementById('spectator-banner');
 
     // Options Sliders & Fullscreen
     this.sfxSlider = document.getElementById('sfx-slider');
@@ -686,6 +688,25 @@ export class UIManager {
       this.minimap.render(player, circle, enemyTargets);
     }
 
+    // --- SPECTATOR HUD MASKING ---
+    if (player && player.isSpectator) {
+      if (this.hudCrosshairCanvas) {
+        this.hudCrosshairCanvas.style.display = 'none';
+        this.hudCrosshairCanvas.style.opacity = '0';
+      }
+      if (this.hudBottomEl) this.hudBottomEl.style.display = 'none';
+      if (this.centerNoticeEl) this.centerNoticeEl.classList.add('hidden');
+      if (this.spectatorBannerEl) this.spectatorBannerEl.classList.remove('hidden');
+      const scopeUI = document.getElementById('sniper-scope');
+      if (scopeUI) scopeUI.classList.add('hidden');
+      const promptEl = document.getElementById('interaction-prompt');
+      if (promptEl) promptEl.classList.add('hidden');
+      return; // Suppress combat gauge updates for spectators
+    } else {
+      if (this.spectatorBannerEl) this.spectatorBannerEl.classList.add('hidden');
+      if (this.hudBottomEl) this.hudBottomEl.style.display = 'flex';
+    }
+
     // 0. Dynamic Canvas Crosshair & ADS Reticle Update
     if (this.hudCrosshairCanvas && this.controls) {
       const adsProgress = weapon ? (weapon.adsProgress ?? weapon.scopeProgress ?? 0) : 0;
@@ -1093,6 +1114,25 @@ export class UIManager {
     overlay.classList.remove('hidden');
   }
 
+  setSpectatorHUD(isSpectator) {
+    if (isSpectator) {
+      if (this.hudCrosshairCanvas) {
+        this.hudCrosshairCanvas.style.display = 'none';
+        this.hudCrosshairCanvas.style.opacity = '0';
+      }
+      if (this.hudBottomEl) this.hudBottomEl.style.display = 'none';
+      if (this.centerNoticeEl) this.centerNoticeEl.classList.add('hidden');
+      if (this.spectatorBannerEl) this.spectatorBannerEl.classList.remove('hidden');
+      const scopeUI = document.getElementById('sniper-scope');
+      if (scopeUI) scopeUI.classList.add('hidden');
+      const promptEl = document.getElementById('interaction-prompt');
+      if (promptEl) promptEl.classList.add('hidden');
+    } else {
+      if (this.spectatorBannerEl) this.spectatorBannerEl.classList.add('hidden');
+      if (this.hudBottomEl) this.hudBottomEl.style.display = 'flex';
+    }
+  }
+
   hideResultOverlays() {
     if (this.minimapContainerEl) {
       this.minimapContainerEl.style.display = 'block';
@@ -1101,5 +1141,6 @@ export class UIManager {
     const defeatOverlay = document.getElementById('defeat-overlay');
     if (victoryOverlay) victoryOverlay.classList.add('hidden');
     if (defeatOverlay) defeatOverlay.classList.add('hidden');
+    this.setSpectatorHUD(false);
   }
 }

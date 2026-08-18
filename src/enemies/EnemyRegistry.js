@@ -4,6 +4,7 @@
 export const ENEMY_REGISTRY = {
   HUMANOID: {
     type: 'HUMANOID',
+    difficultyTier: 'Minion',
     hp: 100,
     speed: 8.0,
     maxForce: 18.0,
@@ -42,6 +43,7 @@ export const ENEMY_REGISTRY = {
 
   GOLIATH: {
     type: 'GOLIATH',
+    difficultyTier: 'Elite',
     hp: 250,
     speed: 4.0,
     maxForce: 12.0,
@@ -76,6 +78,7 @@ export const ENEMY_REGISTRY = {
 
   DRONE: {
     type: 'DRONE',
+    difficultyTier: 'Minion',
     hp: 60,
     speed: 6.0,
     maxForce: 22.0,

@@ -195,6 +195,66 @@ export const MAP_PRESETS = {
   testing_arena: TESTING_ARENA_CONFIG,
 };
 
+/**
+ * Computes 2D axis-aligned bounding box exclusion zones around all structures with safety padding
+ * @param {number} buffer Safety margin buffer distance in meters (default: 15.0m)
+ * @returns {Array<{minX: number, maxX: number, minZ: number, maxZ: number}>}
+ */
+export function getStructureExclusionZones(buffer = 15.0, config = TESTING_ARENA_CONFIG) {
+  const zones = [];
+  const addZone = (x, z, width, length) => {
+    const halfW = (width || 4) / 2 + buffer;
+    const halfL = (length || 4) / 2 + buffer;
+    zones.push({
+      minX: x - halfW,
+      maxX: x + halfW,
+      minZ: z - halfL,
+      maxZ: z + halfL
+    });
+  };
+
+  const lists = [
+    config.singleLevelBuildings,
+    config.twoLevelBuildings,
+    config.pillboxes,
+    config.platforms,
+    config.coverWalls
+  ];
+
+  for (const list of lists) {
+    if (Array.isArray(list)) {
+      for (const item of list) {
+        addZone(item.x, item.z, item.width, item.length);
+      }
+    }
+  }
+
+  return zones;
+}
+
+/**
+ * Pre-baked validated tactical waypoint coordinates verified clear of structures and slopes
+ */
+export const VALIDATED_SPAWN_WAYPOINTS = [
+  new THREE.Vector3(0, 0.5, 180),
+  new THREE.Vector3(0, 0.5, -180),
+  new THREE.Vector3(180, 0.5, 0),
+  new THREE.Vector3(-180, 0.5, 0),
+  new THREE.Vector3(150, 0.5, 150),
+  new THREE.Vector3(-150, 0.5, 150),
+  new THREE.Vector3(150, 0.5, -150),
+  new THREE.Vector3(-150, 0.5, -150),
+  new THREE.Vector3(220, 0.5, 100),
+  new THREE.Vector3(-220, 0.5, 100),
+  new THREE.Vector3(220, 0.5, -100),
+  new THREE.Vector3(-220, 0.5, -100),
+  new THREE.Vector3(100, 0.5, 220),
+  new THREE.Vector3(-100, 0.5, 220),
+  new THREE.Vector3(100, 0.5, -220),
+  new THREE.Vector3(-100, 0.5, -220),
+];
+
+
 export class TerrainManager {
   constructor(gameScene, config = DEFAULT_MAP_CONFIG) {
     this.gameScene = gameScene;

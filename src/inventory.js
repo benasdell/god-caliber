@@ -133,26 +133,38 @@ export class InventoryManager {
   }
 
   // Generates randomized items with tiered modifier statistics
-  generateRandomItem(baseId, rarityName) {
+  generateRandomItem(baseId, rarityName = 'normal', difficultyTier = 'Minion') {
     const uniqueId = `${baseId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
     if (baseId === 'item_dust_vial') {
-      const amount = Math.floor(Math.random() * 11) + 5; // 5 to 15 dust units
+      const rarityKey = (rarityName || 'normal').toLowerCase();
+      const rarity = RARITIES[rarityKey] || RARITIES.normal;
+
+      let amount = 10;
+      if (difficultyTier === 'Elite') {
+        amount = Math.floor(Math.random() * 11) + 15; // 15 to 25 dust units
+      } else if (difficultyTier === 'Pinnacle') {
+        amount = Math.floor(Math.random() * 16) + 35; // 35 to 50 dust units
+      } else {
+        // Minion (Humanoid, Drone)
+        amount = Math.floor(Math.random() * 6) + 5;   // 5 to 10 dust units
+      }
+
       return {
         id: uniqueId,
         baseId: 'item_dust_vial',
-        name: `CRAFTING DUST VIAL (${amount})`,
+        name: `${rarity.name} DUST VIAL (${amount})`,
         type: 'dust',
         width: 1,
         height: 1,
-        color: `linear-gradient(135deg, #131a26 0%, #d946ef25 100%)`,
-        borderColor: '#d946ef',
-        rarity: 'epic',
+        color: `linear-gradient(135deg, #131a26 0%, ${rarity.color}25 100%)`,
+        borderColor: rarity.color,
+        rarity: rarityKey,
         icon: '🧪',
-        desc: `Contains ${amount} units of purified Crafting Dust. Right-click or pick up to add to crafting reserves.`,
+        desc: `Contains ${amount} units of ${rarity.name} Crafting Dust. Right-click or pick up to add to crafting reserves.`,
         dustAmount: amount,
         modifiers: {},
-        modifiersList: [`+${amount} Crafting Dust`]
+        modifiersList: [`+${amount} ${rarity.name} Crafting Dust`]
       };
     }
 
@@ -317,5 +329,13 @@ export class InventoryManager {
       return item;
     }
     return null;
+  }
+
+  addRecycledDust(rarity = 'normal', amount = 10) {
+    const key = (rarity || 'normal').toLowerCase();
+    if (typeof this.recycledDust[key] !== 'number') {
+      this.recycledDust[key] = 0;
+    }
+    this.recycledDust[key] += Math.max(0, Number(amount) || 0);
   }
 }
